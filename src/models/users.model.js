@@ -10,8 +10,6 @@ const User = new Schema({
   address: String,
   phone: String,
   cart_id: Schema.Types.ObjectId,
-  is_active: Boolean,
-  is_admin: Boolean
 });
 
 module.exports = mongoose.model('User', User);
