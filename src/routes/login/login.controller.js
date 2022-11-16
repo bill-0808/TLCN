@@ -8,7 +8,7 @@ async function register(req, res) {
         return;
     }
     else {
-        const doesExist = await accounts.findOne({ email: req.body.email })
+        const doesExist = await accounts.findOne({ email: req.body.email, is_active: true })
         if (doesExist) {
             res.status(500).send({ message: "Email already existed" });
         } else {
@@ -29,7 +29,7 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-    let loginUser = await accounts.findOne({ email: req.body.email })
+    let loginUser = await accounts.findOne({ email: req.body.email, is_active: true })
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
@@ -40,7 +40,7 @@ async function login(req, res) {
             let loginPassword = await hashPass(req.body.password);
             if (bcrypt.compare(loginUser.password, loginPassword)) {
                 let token = await createToken(loginUser._id);
-                res.status(200).send({ data: { token } });
+                res.status(200).send({ token: token, user: loginUser });
             } else {
                 res.status(401).send({ message: "Wrong password!!" });
             }

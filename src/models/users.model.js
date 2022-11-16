@@ -1,15 +1,13 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const ObjectId = Schema.ObjectId;
 
 const User = new Schema({
-  id: ObjectId,
+  _id: Schema.Types.ObjectId,
   name: String,
   age: Number,
   gender: Number,
   address: String,
   phone: String,
-  cart_id: Schema.Types.ObjectId,
 });
 
 module.exports = mongoose.model('User', User);

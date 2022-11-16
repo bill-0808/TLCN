@@ -3,7 +3,6 @@ const fs = require('fs');
 const accounts = require('../../models/accounts.model')
 
 async function createNews(req, res) {
-    console.log(req.user);
     let loginUser = await accounts.findOne({ _id: req.user._id })
     if (loginUser.is_admin !== true) {
         res.status(401).send({ message: "Unauthorized!!" })
@@ -13,7 +12,6 @@ async function createNews(req, res) {
             return;
         }
         else {
-            console.log(req.file.path);
             let img = fs.readFileSync(req.file.path);
             let encode_image = img.toString('base64');
             // Define a JSONobject for the image attributes for saving to database
@@ -45,7 +43,79 @@ function getAllNews(req, res) {
     })
 }
 
+function getOneNews(req, res) {
+    let id = req.params.id;
+    news.findById(id, function (err, news) {
+        if (!err) {
+            res.status(200).send({ news: news });
+        } else {
+            res.status(500).send(err);
+        }
+    })
+}
+
+async function updateNews(req, res) {
+    let loginUser = await accounts.findOne({ _id: req.user._id })
+    if (loginUser.is_admin !== true) {
+        res.status(401).send({ message: "Unauthorized!!" })
+    } else {
+        if (!req.body) {
+            res.status(500).send({ message: "Missing body!" });
+            return;
+        } else {
+            let id = req.params.id;
+            let img = fs.readFileSync(req.file.path);
+            let encode_image = img.toString('base64');
+            // Define a JSONobject for the image attributes for saving to database
+
+            let finalImg = {
+                contentType: req.file.mimetype,
+                image: Buffer.from(encode_image, 'base64')
+            };
+            let bodyData = {
+                content: req.body.content,
+                thumbnail: finalImg,
+                title: req.body.title,
+            }
+            news.findByIdAndUpdate(id, bodyData)
+                .then(data => {
+                    if (!data) {
+                        res.status(404).send({ message: "Not found!!" });
+                    } else {
+                        res.status(200).send({ news: bodyData });
+                    }
+                }).catch(err => {
+                    res.status(500).send(err);
+                })
+        }
+    }
+}
+
+async function deleteNews(req, res) {
+    let loginUser = await accounts.findOne({ _id: req.user._id })
+    if (loginUser.is_admin !== true) {
+        res.status(401).send({ message: "Unauthorized!!" })
+    } else {
+        if (!req.body) {
+            res.status(500).send({ message: "Missing body!" });
+            return;
+        } else {
+            let id = req.params.id;
+            news.findByIdAndDelete(id, function (err, news) {
+                if (!err) {
+                    res.status(200).send({ message: "delete complete!!" });
+                } else {
+                    res.status(500).send(err);
+                }
+            })
+        }
+    }
+}
+
 module.exports = {
     createNews,
     getAllNews,
+    getOneNews,
+    updateNews,
+    deleteNews,
 };
