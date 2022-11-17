@@ -7,6 +7,7 @@ const productRouter = require('./routes/products/products.router');
 const loginRouter = require('./routes/login/login.router');
 const newsRouter = require('./routes/news/news.router');
 const userRouter = require('./routes/users/users.router');
+const cartRouter = require('./routes/carts/carts.router');
 const bodyParser = require('body-parser')
 
 db.connectDB();
@@ -19,12 +20,13 @@ app.use(bodyParser.urlencoded({
 }));
 app.use(bodyParser.json());
 app.use(express.json());
- 
+
 app.use(morgan('combined'));
 
 app.use('/product', productRouter);
 app.use('/news', newsRouter);
 app.use('/login', loginRouter);
 app.use('/user', userRouter);
+app.use('/cart', cartRouter);
 
 module.exports = app

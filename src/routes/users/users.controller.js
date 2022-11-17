@@ -6,8 +6,10 @@ async function firstLogin(req, res) {
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
-    }
-    else {
+    } else if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
         if (loginUser.user_id !== null) {
             res.status(500).send({ message: "User infomation alr registed" });
