@@ -16,22 +16,28 @@ async function createNews(req, res) {
                 return;
             }
             else {
-                let img = fs.readFileSync(req.file.path);
-                let encode_image = img.toString('base64');
-                // Define a JSONobject for the image attributes for saving to database
+                if (req.file) {
+                    let img = fs.readFileSync(req.file.path);
+                    let encode_image = img.toString('base64');
+                    // Define a JSONobject for the image attributes for saving to database
 
-                let finalImg = {
-                    contentType: req.file.mimetype,
-                    image: Buffer.from(encode_image, 'base64')
-                };
-                const anews = new news({
-                    content: req.body.content,
-                    thumbnail: finalImg,
-                    title: req.body.title,
-                })
-                anews.save(anews).then(data => {
-                    res.status(201).send(data);
-                }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
+                    let finalImg = {
+                        contentType: req.file.mimetype,
+                        image: Buffer.from(encode_image, 'base64')
+                    };
+                    const anews = new news({
+                        content: req.body.content,
+                        thumbnail: finalImg,
+                        title: req.body.title,
+                    })
+                    anews.save(anews).then(data => {
+                        res.status(201).send(data);
+                    }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
+                }
+                else {
+                    res.status(500).send({ message: "Missing body!" });
+                    return;
+                }
             }
         }
     }
@@ -72,30 +78,36 @@ async function updateNews(req, res) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
-                let id = req.params.id;
-                let img = fs.readFileSync(req.file.path);
-                let encode_image = img.toString('base64');
-                // Define a JSONobject for the image attributes for saving to database
+                if (req.file) {
+                    let id = req.params.id;
+                    let img = fs.readFileSync(req.file.path);
+                    let encode_image = img.toString('base64');
+                    // Define a JSONobject for the image attributes for saving to database
 
-                let finalImg = {
-                    contentType: req.file.mimetype,
-                    image: Buffer.from(encode_image, 'base64')
-                };
-                let bodyData = {
-                    content: req.body.content,
-                    thumbnail: finalImg,
-                    title: req.body.title,
+                    let finalImg = {
+                        contentType: req.file.mimetype,
+                        image: Buffer.from(encode_image, 'base64')
+                    };
+                    let bodyData = {
+                        content: req.body.content,
+                        thumbnail: finalImg,
+                        title: req.body.title,
+                    }
+                    news.findByIdAndUpdate(id, bodyData)
+                        .then(data => {
+                            if (!data) {
+                                res.status(404).send({ message: "Not found!!" });
+                            } else {
+                                res.status(200).send({ news: bodyData });
+                            }
+                        }).catch(err => {
+                            res.status(500).send(err);
+                        })
                 }
-                news.findByIdAndUpdate(id, bodyData)
-                    .then(data => {
-                        if (!data) {
-                            res.status(404).send({ message: "Not found!!" });
-                        } else {
-                            res.status(200).send({ news: bodyData });
-                        }
-                    }).catch(err => {
-                        res.status(500).send(err);
-                    })
+                else {
+                    res.status(500).send({ message: "Missing body!" });
+                    return;
+                }
             }
         }
     }

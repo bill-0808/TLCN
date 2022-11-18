@@ -9,6 +9,6 @@ newsRouter.post("/", authenticate, upload.single('thumbnail'), createNews);
 newsRouter.get("/", getAllNews);
 newsRouter.get("/:id", getOneNews);
 newsRouter.put("/:id", authenticate, upload.single('thumbnail'), updateNews);
-newsRouter.delete("/:id", authenticate, upload.single('thumbnail'), deleteNews);
+newsRouter.delete("/:id", authenticate, deleteNews);
 
 module.exports = newsRouter;
