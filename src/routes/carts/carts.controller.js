@@ -1,7 +1,7 @@
 const accounts = require('../../models/accounts.model')
-const mongoose = require('mongoose');
 const carts = require('../../models/carts.model');
 const { doesProductInCart } = require('../../helpers/cart_util')
+const { ObjectId } = require('mongodb');
 
 async function addToCart(req, res) {
     if (!req.body) {
@@ -12,9 +12,8 @@ async function addToCart(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
-        let userCart = await carts.find({ account_id: loginUser._id })
         if (doesProductInCart(req.body.product_id, loginUser._id, req.body.size)) {
-            carts.findOneAndUpdate({ product_id: req.body.product_id, size: req.body.size }, { $inc: { quantity: req.body.quantity } })
+            carts.findOneAndUpdate({ product_id: ObjectId(req.body.product_id), size: req.body.size }, { $inc: { quantity: req.body.quantity } })
                 .then(data => {
                     if (!data) {
                         res.status(404).send({ message: "Not found!!" });
@@ -26,7 +25,7 @@ async function addToCart(req, res) {
                 })
         } else {
             const cart = new carts({
-                product_id: req.body.product_id,
+                product_id: ObjectId(req.body.product_id),
                 account_id: loginUser._id,
                 quantity: req.body.quantity,
                 status: 1,
@@ -39,7 +38,24 @@ async function addToCart(req, res) {
     }
 }
 
+async function getAllCart(req, res) {
+    if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        let loginUser = await accounts.findOne({ _id: req.user._id })
+        carts.find({ account_id: loginUser._id }, function (err, carts) {
+            if (!err) {
+                let count = carts.length;
+                res.status(200).send({ count: count, carts: carts });
+            } else {
+                res.status(500).send(err);
+            }
+        })
+    }
+}
 
 module.exports = {
     addToCart,
+    getAllCart,
 };
