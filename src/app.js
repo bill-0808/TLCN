@@ -8,6 +8,9 @@ const loginRouter = require('./routes/login/login.router');
 const newsRouter = require('./routes/news/news.router');
 const userRouter = require('./routes/users/users.router');
 const cartRouter = require('./routes/carts/carts.router');
+const brandsRouter = require('./routes/brands/brands.router');
+const shipsRouter = require('./routes/ship/ship.router');
+const promotionsRouter = require('./routes/promotions/promotions.router');
 const bodyParser = require('body-parser')
 
 db.connectDB();
@@ -28,5 +31,8 @@ app.use('/news', newsRouter);
 app.use('/login', loginRouter);
 app.use('/user', userRouter);
 app.use('/cart', cartRouter);
+app.use('/brand', brandsRouter);
+app.use('/ship', shipsRouter);
+app.use('/promotion', promotionsRouter);
 
 module.exports = app
