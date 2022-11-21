@@ -6,6 +6,7 @@ const OrderDetail = new Schema({
   id: ObjectId,
   product_id: Schema.Types.ObjectId,
   quantity: Number,
+  size: Number,
   order_id: Schema.Types.ObjectId,
 });
 
