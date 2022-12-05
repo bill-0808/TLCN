@@ -5,10 +5,7 @@ const ObjectId = Schema.ObjectId;
 const News = new Schema({
   id: ObjectId,
   content: String,
-  thumbnail: {
-    image: Buffer,
-    contentType: String
-  },
+  thumbnail: String,
   title: String
 });
 

@@ -1,6 +1,6 @@
 const news = require('../../models/news.model')
-const fs = require('fs');
 const accounts = require('../../models/accounts.model')
+const { cloudinary, options } = require('../../helpers/cloudinary_helper')
 
 async function createNews(req, res) {
     if (!req.user) {
@@ -17,17 +17,16 @@ async function createNews(req, res) {
             }
             else {
                 if (req.file) {
-                    let img = fs.readFileSync(req.file.path);
-                    let encode_image = img.toString('base64');
-                    // Define a JSONobject for the image attributes for saving to database
+                    let thumbnail;
+                    await cloudinary.uploader.upload(req.file.path, options).then(result => {
+                        thumbnail = result.secure_url
+                    }).catch(err => {
+                        console.log(err);
+                    })
 
-                    let finalImg = {
-                        contentType: req.file.mimetype,
-                        image: Buffer.from(encode_image, 'base64')
-                    };
                     const anews = new news({
                         content: req.body.content,
-                        thumbnail: finalImg,
+                        thumbnail: thumbnail,
                         title: req.body.title,
                     })
                     anews.save(anews).then(data => {
@@ -78,19 +77,18 @@ async function updateNews(req, res) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
+                let id = req.params.id;
                 if (req.file) {
-                    let id = req.params.id;
-                    let img = fs.readFileSync(req.file.path);
-                    let encode_image = img.toString('base64');
-                    // Define a JSONobject for the image attributes for saving to database
+                    let thumbnail;
+                    await cloudinary.uploader.upload(req.file.path, options).then(result => {
+                        thumbnail = result.secure_url
+                    }).catch(err => {
+                        console.log(err);
+                    })
 
-                    let finalImg = {
-                        contentType: req.file.mimetype,
-                        image: Buffer.from(encode_image, 'base64')
-                    };
                     let bodyData = {
                         content: req.body.content,
-                        thumbnail: finalImg,
+                        thumbnail: thumbnail,
                         title: req.body.title,
                     }
                     news.findByIdAndUpdate(id, bodyData)
@@ -105,8 +103,20 @@ async function updateNews(req, res) {
                         })
                 }
                 else {
-                    res.status(500).send({ message: "Missing body!" });
-                    return;
+                    let bodyData = {
+                        content: req.body.content,
+                        title: req.body.title,
+                    }
+                    news.findByIdAndUpdate(id, bodyData)
+                        .then(data => {
+                            if (!data) {
+                                res.status(404).send({ message: "Not found!!" });
+                            } else {
+                                res.status(200).send({ news: bodyData });
+                            }
+                        }).catch(err => {
+                            res.status(500).send(err);
+                        })
                 }
             }
         }

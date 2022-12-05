@@ -1,6 +1,6 @@
 const products = require('../../models/products.model')
 const accounts = require('../../models/accounts.model')
-const fs = require('fs');
+const { cloudinary, options } = require('../../helpers/cloudinary_helper')
 
 async function createProduct(req, res) {
     console.log(req.files, req.body, JSON.parse(req.body.size));
@@ -18,21 +18,17 @@ async function createProduct(req, res) {
             }
             else {
                 if (req.files) {
-                    let dataImage = [];
+                    let productImage = [];
                     for (let i = 0; i < req.files.length; i++) {
-                        let img = fs.readFileSync(req.files[i].path);
-                        let encode_image = img.toString('base64');
-                        // Define a JSONobject for the image attributes for saving to database
-
-                        let finalImg = {
-                            contentType: req.files[i].mimetype,
-                            image: Buffer.from(encode_image, 'base64')
-                        };
-                        dataImage.push(finalImg);
+                        await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
+                            productImage.push(result.secure_url);
+                        }).catch(err => {
+                            console.log(err);
+                        })
                     }
 
                     const product = new products({
-                        product_image: dataImage,
+                        product_image: productImage,
                         name: req.body.name,
                         price: req.body.price,
                         type: req.body.type,
@@ -92,23 +88,19 @@ async function updateProducts(req, res) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
+                let id = req.params.id;
                 if (req.files) {
-                    let id = req.params.id;
-                    let dataImage = [];
+                    let productImage = [];
                     for (let i = 0; i < req.files.length; i++) {
-                        let img = fs.readFileSync(req.files[i].path);
-                        let encode_image = img.toString('base64');
-                        // Define a JSONobject for the image attributes for saving to database
-
-                        let finalImg = {
-                            contentType: req.files[i].mimetype,
-                            image: Buffer.from(encode_image, 'base64')
-                        };
-                        dataImage.push(finalImg);
+                        await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
+                            productImage.push(result.secure_url);
+                        }).catch(err => {
+                            console.log(err);
+                        })
                     }
 
                     let bodyData = {
-                        product_image: dataImage,
+                        product_image: productImage,
                         name: req.body.name,
                         price: req.body.price,
                         type: req.body.type,
@@ -132,8 +124,28 @@ async function updateProducts(req, res) {
                         })
                 }
                 else {
-                    res.status(500).send({ message: "Missing body!" });
-                    return;
+                    let bodyData = {
+                        name: req.body.name,
+                        price: req.body.price,
+                        type: req.body.type,
+                        brand: req.body.brand,
+                        description: req.body.description,
+                        gender: req.body.gender,
+                        color: req.body.color,
+                        size: JSON.parse(req.body.size),
+                        is_active: true,
+                        discount: req.body.discount
+                    }
+                    products.findByIdAndUpdate(id, bodyData)
+                        .then(data => {
+                            if (!data) {
+                                res.status(404).send({ message: "Not found!!" });
+                            } else {
+                                res.status(200).send({ products: bodyData });
+                            }
+                        }).catch(err => {
+                            res.status(500).send(err);
+                        })
                 }
             }
         }
@@ -154,8 +166,8 @@ async function deleteProducts(req, res) {
                 return;
             } else {
                 let id = req.params.id;
-                products.findByIdAndDelete(id, function (err, products) {
-                    if (!err) {
+                products.findByIdAndUpdate(id, { is_active: false }, function (err, products) {
+                    if (!err && products) {
                         res.status(200).send({ message: "delete complete!!" });
                     } else {
                         res.status(500).send(err);

@@ -8,6 +8,7 @@ const User = new Schema({
   gender: Number,
   address: String,
   phone: String,
+  avatar: String
 });
 
 module.exports = mongoose.model('User', User);
