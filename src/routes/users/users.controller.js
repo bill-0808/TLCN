@@ -4,14 +4,14 @@ const mongoose = require('mongoose');
 const { cloudinary, options } = require('../../helpers/cloudinary_helper')
 
 async function firstLogin(req, res) {
-    let loginUser = await accounts.findOne({ _id: req.user._id })
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
-    } else if (!loginUser) {
+    } else if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        let loginUser = await accounts.findOne({ _id: req.user._id })
         if (loginUser.user_id !== null) {
             res.status(500).send({ message: "User infomation alr registed" });
         } else {

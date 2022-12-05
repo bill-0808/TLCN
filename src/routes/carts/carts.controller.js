@@ -16,7 +16,7 @@ async function addToCart(req, res) {
         let checkExist = await doesProductInCart(req.body.product_id, loginUser._id, req.body.size);
         if (checkExist) {
             if (checkExist == 1 && req.body.quantity == -1) {
-                carts.findOneAndDelete({ product_id: ObjectId(req.body.product_id), size: req.body.size })
+                carts.findOneAndDelete({ product_id: ObjectId(req.body.product_id), size: req.body.size, account_id: loginUser._id })
                     .then(data => {
                         if (!data) {
                             res.status(404).send({ message: "Not found!!" });
@@ -27,7 +27,7 @@ async function addToCart(req, res) {
                         res.status(500).send(err);
                     })
             } else {
-                carts.findOneAndUpdate({ product_id: ObjectId(req.body.product_id), size: req.body.size }, { $inc: { quantity: req.body.quantity } })
+                carts.findOneAndUpdate({ product_id: ObjectId(req.body.product_id), size: req.body.size, account_id: loginUser._id }, { $inc: { quantity: req.body.quantity } })
                     .then(data => {
                         if (!data) {
                             res.status(404).send({ message: "Not found!!" });
@@ -86,7 +86,7 @@ async function removeFromCart(req, res) {
         if (!checkExist) {
             res.status(404).send({ message: "product not exist" });
         } else {
-            carts.findOneAndDelete({ product_id: ObjectId(req.body.product_id), size: req.body.size })
+            carts.findOneAndDelete({ product_id: ObjectId(req.body.product_id), size: req.body.size, account_id: loginUser._id })
                 .then(data => {
                     if (!data) {
                         res.status(404).send({ message: "Not found!!" });
