@@ -2,6 +2,8 @@ const accounts = require('../../models/accounts.model')
 const users = require('../../models/users.model')
 const bcrypt = require('bcrypt');
 const { hashPass, createToken } = require('../../helpers/jwt_helper')
+const nodemailer = require('nodemailer');
+const smtpTransport = require('nodemailer-smtp-transport');
 
 async function register(req, res) {
     if (!req.body) {
@@ -22,13 +24,51 @@ async function register(req, res) {
                 password: password,
                 user_id: null,
                 is_admin: false,
-                is_active: true
+                is_active: false
             })
-            account.save(account).then(data => {
-                res.status(201).send(data);
+            account.save(account).then(async data => {
+                let transporter = nodemailer.createTransport(smtpTransport({
+                    service: 'gmail',
+                    host: 'smtp.gmail.com',
+                    auth: {
+                        user: 'shoesshopkutsu@gmail.com',
+                        pass: 'dkbaizlebgxvkona'
+                    }
+                }));
+
+                let link = await 'http:/localhost:8080/login/verify/' + String(data._id);
+
+                let mailOptions = {
+                    from: 'shoesshopkutsu@gmail.com',
+                    to: String(data.email),
+                    subject: '[Shoes shop verify email]',
+                    html: `<p>Nhấn vào link bên dưới để xác thực email</p><br><a href="${link}">Verify Email.</a>`
+                };
+
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error) {
+                        res.status(500).send({ message: error })
+                    } else {
+                        res.status(200).send({ message: "mail sent" })
+                    }
+                });
             }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
         }
     }
+}
+
+async function verify(req, res) {
+    let id = await req.params.id;
+    accounts.findByIdAndUpdate(id, { is_active: true })
+        .then(data => {
+            if (!data) {
+                res.status(404).send({ message: "Not found!!" });
+            } else {
+                res.redirect(301, "http://localhost:3000");
+            }
+        }).catch(err => {
+            res.status(500).send(err);
+        })
 }
 
 async function login(req, res) {
@@ -72,4 +112,5 @@ async function login(req, res) {
 module.exports = {
     register,
     login,
+    verify,
 };
