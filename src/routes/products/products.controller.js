@@ -1,6 +1,9 @@
 const products = require('../../models/products.model')
 const accounts = require('../../models/accounts.model')
-const { cloudinary, options } = require('../../helpers/cloudinary_helper')
+const { cloudinary, options } = require('../../helpers/cloudinary_helper');
+const ratings = require('../../models/ratings.model');
+const { ObjectId } = require('mongodb');
+const users = require('../../models/users.model');
 
 async function createProduct(req, res) {
     console.log(req.files, req.body, JSON.parse(req.body.size));
@@ -64,11 +67,26 @@ function getAllProducts(req, res) {
     })
 }
 
-function getOneProducts(req, res) {
+async function getOneProducts(req, res) {
     let id = req.params.id;
-    products.findById(id, function (err, products) {
+    products.findById(id, async function (err, products) {
         if (!err) {
-            res.status(200).send({ products: products });
+            let ratingsResult = [];
+            let ratingsSet = await ratings.find({ product_id: ObjectId(products._id) });
+            for (let i = 0; i < ratingsSet.length; i++) {
+                let user = await users.findById(ratingsSet[i].user_id);
+                let rating = await {
+                    image: ratingsSet[i].image,
+                    comment: ratingsSet[i].comment,
+                    rate: ratingsSet[i].rate,
+                    user: {
+                        avatar: user.avatar,
+                        name: user.name
+                    }
+                }
+                await ratingsResult.push(rating)
+            }
+            res.status(200).send({ product: products, ratings: ratingsResult });
         } else {
             res.status(500).send(err);
         }

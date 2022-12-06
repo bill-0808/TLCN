@@ -64,7 +64,7 @@ async function verify(req, res) {
             if (!data) {
                 res.status(404).send({ message: "Not found!!" });
             } else {
-                res.redirect(301, "http://localhost:3000");
+                res.redirect(301, "http://localhost:3000/login");
             }
         }).catch(err => {
             res.status(500).send(err);

@@ -11,6 +11,7 @@ const cartRouter = require('./routes/carts/carts.router');
 const brandsRouter = require('./routes/brands/brands.router');
 const shipsRouter = require('./routes/ship/ship.router');
 const promotionsRouter = require('./routes/promotions/promotions.router');
+const ratingsRouter = require('./routes/ratings/ratings.router');
 const orderRouter = require('./routes/orders/orders.router');
 const bodyParser = require('body-parser')
 
@@ -36,5 +37,6 @@ app.use('/brand', brandsRouter);
 app.use('/ship', shipsRouter);
 app.use('/promotion', promotionsRouter);
 app.use('/order', orderRouter);
+app.use('/rating', ratingsRouter);
 
 module.exports = app

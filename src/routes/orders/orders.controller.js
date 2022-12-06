@@ -105,7 +105,105 @@ async function createOrder(req, res) {
     }
 }
 
+async function updateOrderStatus(req, res) {
+    if (!req.body) {
+        res.status(500).send({ message: "Missing body!" });
+        return;
+    } else if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        // let loginUser = await accounts.findOne({ _id: req.user._id })
+        let id = await req.params.id;
+        const session = await mongoose.startSession();
+        session.startTransaction();
+        try {
+            const opts = { session };
+            const order = await orders.findByIdAndUpdate(id, { $inc: { status: 1 } }, { opts });
+            const orderDetail = await orderDetails.find({ order_id: ObjectId(id) });
+            for (let i = 0; i < orderDetail.length; i++) {
+                await carts.findOneAndUpdate({ product_id: ObjectId(orderDetail[i].product_id), size: orderDetail[i].size, account_id: ObjectId(order.account_id) }, { $inc: { status: 1 } }, opts)
+            }
+            await session.commitTransaction();
+            session.endSession();
+            res.status(200).send({ message: "Order updated" })
+        } catch (err) {
+            await session.abortTransaction();
+            session.endSession();
+            res.status(500).send(err);
+        }
+    }
+}
+
+async function getAllOrder(req, res) {
+    if (!req.body) {
+        res.status(500).send({ message: "Missing body!" });
+        return;
+    } else if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        orders.find({}, function (err, orders) {
+            if (!err) {
+                let count = orders.length;
+                res.status(200).send({ count: count, orders: orders });
+            } else {
+                res.status(500).send(err);
+            }
+        })
+    }
+}
+
+async function getOrderByUser(req, res) {
+    if (!req.body) {
+        res.status(500).send({ message: "Missing body!" });
+        return;
+    } else if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        let loginUser = await accounts.findOne({ _id: req.user._id })
+        orders.find({ account_id: ObjectId(loginUser._id) }, function (err, orders) {
+            if (!err) {
+                let count = orders.length;
+                res.status(200).send({ count: count, orders: orders });
+            } else {
+                res.status(500).send(err);
+            }
+        })
+    }
+}
+
+async function getOneOrder(req, res) {
+    if (!req.body) {
+        res.status(500).send({ message: "Missing body!" });
+        return;
+    } else if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        let id = await req.params.id;
+        orders.findById(id, async function (err, orders) {
+            if (!err) {
+                let productInOrder = [];
+                let orderDetail = await orderDetails.find({ order_id: ObjectId(orders._id) });
+                for (let i = 0; i < orderDetail.length; i++) {
+                    let product = await products.findById(orderDetail[i].product_id);
+                    await productInOrder.push(product);
+                }
+                let count = orderDetail.length;
+                res.status(200).send({ count: count, orderId: orders._id, orderStatus: orders.status, orderDetail: productInOrder });
+            } else {
+                res.status(500).send(err);
+            }
+        })
+    }
+}
 
 module.exports = {
-    createOrder
+    createOrder,
+    updateOrderStatus,
+    getAllOrder,
+    getOneOrder,
+    getOrderByUser
 };
