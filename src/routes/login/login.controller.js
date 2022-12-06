@@ -24,6 +24,7 @@ async function register(req, res) {
                 password: password,
                 user_id: null,
                 is_admin: false,
+                is_seller: false,
                 is_active: false
             })
             account.save(account).then(async data => {
@@ -93,13 +94,15 @@ async function login(req, res) {
                             address: "",
                             phone: "",
                             avatar: "",
-                            __v: ""
-                        }
+                            __v: "",
+                        },
+                        is_admin: loginUser.is_admin,
+                        is_seller: loginUser.is_seller
                     });
                 } else {
                     let user = await users.findById(loginUser.user_id);
                     res.status(200).send({
-                        token: token, user: user
+                        token: token, user: user, is_admin: loginUser.is_admin, is_seller: loginUser.is_seller
                     });
                 }
             } else {

@@ -8,7 +8,8 @@ const Account = new Schema({
     email: { type: String, require: true, unique: true },
     password: { type: String, require: true },
     is_admin: Boolean,
-    is_active: Boolean
+    is_active: Boolean,
+    is_seller: Boolean
 });
 
 module.exports = mongoose.model('Account', Account);

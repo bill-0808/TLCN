@@ -120,6 +120,9 @@ async function updateOrderStatus(req, res) {
         try {
             const opts = { session };
             const order = await orders.findByIdAndUpdate(id, { $inc: { status: 1 } }, { opts });
+            if (order.status == 2) {
+                await orders.findByIdAndUpdate(id, { complete_date: new Date() }, { opts });
+            }
             const orderDetail = await orderDetails.find({ order_id: ObjectId(id) });
             for (let i = 0; i < orderDetail.length; i++) {
                 await carts.findOneAndUpdate({ product_id: ObjectId(orderDetail[i].product_id), size: orderDetail[i].size, account_id: ObjectId(order.account_id) }, { $inc: { status: 1 } }, opts)
