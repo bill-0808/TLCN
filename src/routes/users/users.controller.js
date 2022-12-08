@@ -1,7 +1,7 @@
 const users = require('../../models/users.model')
 const accounts = require('../../models/accounts.model')
 const mongoose = require('mongoose');
-const { cloudinary, options } = require('../../helpers/cloudinary_helper')
+const { cloudinary, options } = require('../../helpers/cloudinary_helper');
 
 async function firstLogin(req, res) {
     if (!req.body) {
@@ -97,6 +97,26 @@ async function getUser(req, res) {
     }
 }
 
+async function getAllAccount(req, res) {
+    if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        let loginUser = await accounts.findOne({ _id: req.user._id, is_active: true })
+        if (loginUser.is_admin !== true) {
+            res.status(401).send({ message: "Unauthorized!!" })
+        } else {
+            accounts.find({}, function (err, accounts) {
+                if (!err) {
+                    res.status(200).send({ account: accounts });
+                } else {
+                    res.status(500).send(err);
+                }
+            })
+        }
+    }
+}
+
 async function updateUser(req, res) {
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
@@ -153,4 +173,5 @@ module.exports = {
     firstLogin,
     getUser,
     updateUser,
+    getAllAccount,
 };

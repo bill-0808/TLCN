@@ -12,7 +12,7 @@ async function addToCart(req, res) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
-        let loginUser = await accounts.findOne({ _id: req.user._id })
+        let loginUser = await accounts.findOne({ _id: req.user._id, is_active: true })
         let checkExist = await doesProductInCart(req.body.product_id, loginUser._id, req.body.size);
         if (checkExist) {
             if (checkExist == 1 && req.body.quantity == -1) {
@@ -58,7 +58,7 @@ async function getAllCart(req, res) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
-        let loginUser = await accounts.findOne({ _id: req.user._id })
+        let loginUser = await accounts.findOne({ _id: req.user._id, is_active: true })
         let cartResult = [];
         const cartItems = await carts.find({ account_id: loginUser._id })
         for (let i = 0; i < cartItems.length; i++) {
