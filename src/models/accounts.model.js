@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
+const now = new Date();
 
 const Account = new Schema({
     id: ObjectId,
@@ -9,7 +10,8 @@ const Account = new Schema({
     password: { type: String, require: true },
     is_admin: Boolean,
     is_active: Boolean,
-    is_seller: Boolean
+    is_seller: Boolean,
+    created_at: { type: Date, default: now }
 });
 
 module.exports = mongoose.model('Account', Account);

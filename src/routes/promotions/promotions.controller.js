@@ -42,6 +42,17 @@ function getAllPromotions(req, res) {
     })
 }
 
+function getOnePromotion(req, res) {
+    let id = req.params.id;
+    promotions.findById(id, function (err, promotions) {
+        if (!err) {
+            res.status(200).send({ promotion: promotions });
+        } else {
+            res.status(500).send(err);
+        }
+    })
+}
+
 async function updatePromotions(req, res) {
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
@@ -108,5 +119,6 @@ module.exports = {
     createPromotions,
     updatePromotions,
     deletePromotions,
-    getAllPromotions
+    getAllPromotions,
+    getOnePromotion
 };

@@ -41,7 +41,7 @@ async function createProduct(req, res) {
                         color: req.body.color,
                         size: JSON.parse(req.body.size),
                         is_active: true,
-                        discount: 0
+                        discount: req.body.discount
                     })
                     product.save(product).then(data => {
                         res.status(201).send(data);
@@ -57,7 +57,7 @@ async function createProduct(req, res) {
 }
 
 function getAllProducts(req, res) {
-    products.find({}, function (err, products) {
+    products.find({ is_active: true }, function (err, products) {
         if (!err) {
             let count = products.length;
             res.status(200).send({ count: count, products: products });

@@ -39,6 +39,17 @@ function getAllShips(req, res) {
     })
 }
 
+function getOneShip(req, res) {
+    let id = req.params.id;
+    ships.findById(id, function (err, ships) {
+        if (!err) {
+            res.status(200).send({ ship: ships });
+        } else {
+            res.status(500).send(err);
+        }
+    })
+}
+
 async function updateShips(req, res) {
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
@@ -102,5 +113,6 @@ module.exports = {
     createShips,
     updateShips,
     deleteShips,
-    getAllShips
+    getAllShips,
+    getOneShip
 };

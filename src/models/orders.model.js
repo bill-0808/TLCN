@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const now = new Date();
 
 const Order = new Schema({
   _id: Schema.Types.ObjectId,
@@ -11,6 +12,7 @@ const Order = new Schema({
   account_id: Schema.Types.ObjectId,
   promotion_id: Schema.Types.ObjectId,
   location: String,
+  created_at: { type: Date, default: now }
 });
 
 module.exports = mongoose.model('Order', Order);

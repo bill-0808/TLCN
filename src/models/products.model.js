@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
+const now = new Date();
 
 const Product = new Schema({
   id: ObjectId,
@@ -14,7 +15,8 @@ const Product = new Schema({
   color: String,
   size: Schema.Types.Mixed,
   is_active: Boolean,
-  discount: Number
+  discount: Number,
+  created_at: { type: Date, default: now }
 });
 
 module.exports = mongoose.model('Product', Product);
