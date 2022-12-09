@@ -82,11 +82,11 @@ async function removeFromCart(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
-        let checkExist = await doesProductInCart(req.body.product_id, loginUser._id, req.body.size);
+        let checkExist = await doesProductInCart(req.params.product_id, loginUser._id, req.params.size);
         if (!checkExist) {
             res.status(404).send({ message: "product not exist" });
         } else {
-            carts.findOneAndDelete({ product_id: ObjectId(req.body.product_id), size: req.body.size, account_id: loginUser._id })
+            carts.findOneAndDelete({ product_id: ObjectId(req.params.product_id), size: req.params.size, account_id: loginUser._id })
                 .then(data => {
                     if (!data) {
                         res.status(404).send({ message: "Not found!!" });

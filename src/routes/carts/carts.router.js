@@ -6,6 +6,6 @@ const cartRouter = express.Router();
 
 cartRouter.post("/", authenticate, addToCart);
 cartRouter.get("/", authenticate, getAllCart);
-cartRouter.delete("/", authenticate, removeFromCart);
+cartRouter.delete("/:product_id/:size", authenticate, removeFromCart);
 
 module.exports = cartRouter;
