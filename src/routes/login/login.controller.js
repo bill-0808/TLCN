@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 const { hashPass, createToken } = require('../../helpers/jwt_helper')
 const nodemailer = require('nodemailer');
 const smtpTransport = require('nodemailer-smtp-transport');
+const { makeid } = require('../../helpers/user_util');
+const { ObjectId } = require('mongodb');
 
 async function register(req, res) {
     if (!req.body) {
@@ -18,14 +20,15 @@ async function register(req, res) {
             res.status(500).send({ message: "confirm password might not right" });
         } else {
             password = await hashPass(req.body.password);
-            console.log(password);
+            var secret = await makeid(6);
             const account = new accounts({
                 email: req.body.email,
                 password: password,
                 user_id: null,
                 is_admin: false,
                 is_seller: false,
-                is_active: false
+                is_active: false,
+                secret: secret
             })
             account.save(account).then(async data => {
                 let transporter = nodemailer.createTransport(smtpTransport({
@@ -37,20 +40,18 @@ async function register(req, res) {
                     }
                 }));
 
-                let link = await 'http:/localhost:8080/login/verify/' + String(data._id);
-
                 let mailOptions = {
                     from: 'shoesshopkutsu@gmail.com',
                     to: String(data.email),
                     subject: '[Shoes shop verify email]',
-                    html: `<p>Nhấn vào link bên dưới để xác thực email</p><br><a href="${link}">Verify Email.</a>`
+                    html: `<p>Mã xác nhận đăng ký của bạn ở shoeShop là:</p><br><p>Mã xác nhận: <b>${secret}</b></p>`
                 };
 
                 transporter.sendMail(mailOptions, function (error, info) {
                     if (error) {
                         res.status(500).send({ message: error })
                     } else {
-                        res.status(200).send({ message: "mail sent" })
+                        res.status(200).send({ account: data })
                     }
                 });
             }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
@@ -60,16 +61,72 @@ async function register(req, res) {
 
 async function verify(req, res) {
     let id = await req.params.id;
-    accounts.findByIdAndUpdate(id, { is_active: true })
+    let secret = await req.body.secret;
+    accounts.findOneAndUpdate({ _id: ObjectId(id), secret: secret }, { is_active: true })
         .then(data => {
             if (!data) {
                 res.status(404).send({ message: "Not found!!" });
             } else {
-                res.redirect(301, "http://localhost:3000/login");
+                res.status(200).send({ message: "verified!!" })
             }
         }).catch(err => {
             res.status(500).send(err);
         })
+}
+
+async function resetPassword(req, res) {
+    let email = req.body.email;
+    let resetPasswordAccount = await accounts.findOne({ email: email });
+    if (resetPasswordAccount) {
+        var secret = await makeid(6);
+        resetPasswordAccount.secret = secret;
+        await resetPasswordAccount.save();
+        let transporter = nodemailer.createTransport(smtpTransport({
+            service: 'gmail',
+            host: 'smtp.gmail.com',
+            auth: {
+                user: 'shoesshopkutsu@gmail.com',
+                pass: 'dkbaizlebgxvkona'
+            }
+        }));
+
+        let mailOptions = {
+            from: 'shoesshopkutsu@gmail.com',
+            to: String(resetPasswordAccount.email),
+            subject: '[Shoes shop verify email]',
+            html: `<p>Mã đặt lại mật khẩu của bạn ở shoeShop là:</p><br><p>Mã xác nhận: <b>${secret}</b></p>`
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                res.status(500).send({ message: error })
+            } else {
+                res.status(200).send({ account: resetPasswordAccount })
+            }
+        });
+    } else {
+        res.status(500).send({ message: "email might not right!" })
+    }
+}
+
+async function verifyResetPassword(req, res) {
+    if (!req.body) {
+        res.status(500).send({ message: "Missing body!" });
+        return;
+    }
+    else {
+        const doesExist = await accounts.findOne({ email: req.body.email, is_active: true })
+        if (req.body.password != req.body.passwordRepeat) {
+            res.status(500).send({ message: "confirm password might not right" });
+        } else if (doesExist && doesExist.secret == req.body.secret) {
+            password = await hashPass(req.body.password);
+            doesExist.password = password;
+            doesExist.save();
+            return res.status(200).send({ message: "Update passwaord success" });
+        } else {
+            return res.status(500).send({ message: "secret key might not right" })
+        }
+    }
 }
 
 async function login(req, res) {
@@ -81,8 +138,8 @@ async function login(req, res) {
         if (!loginUser) {
             res.status(404).send({ message: "Email might not correct!" });
         } else {
-            let loginPassword = await hashPass(req.body.password);
-            if (bcrypt.compare(loginUser.password, loginPassword)) {
+            let checkPass = await bcrypt.compare(req.body.password, loginUser.password);
+            if (checkPass) {
                 let token = await createToken(loginUser._id);
                 if (loginUser.user_id == null) {
                     res.status(200).send({
@@ -116,4 +173,6 @@ module.exports = {
     register,
     login,
     verify,
+    verifyResetPassword,
+    resetPassword
 };

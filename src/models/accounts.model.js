@@ -11,7 +11,8 @@ const Account = new Schema({
     is_admin: Boolean,
     is_active: Boolean,
     is_seller: Boolean,
-    created_at: { type: Date, default: now }
+    created_at: { type: Date, default: now },
+    secret: String
 });
 
 module.exports = mongoose.model('Account', Account);

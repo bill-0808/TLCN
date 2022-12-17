@@ -24,7 +24,7 @@ async function createOrder(req, res) {
             const opts = { session };
             for (let i = 0; i < req.body.items.length; i++) {
                 let checkExist = await doesProductInCart(req.body.items[i].product_id, loginUser._id, req.body.items[i].size);
-                if (!req.is_fast_buy) {
+                if (req.body.is_fast_buy != true) {
                     if (checkExist) {
                         await orderDetails({
                             product_id: req.body.items[i].product_id,
@@ -77,6 +77,8 @@ async function createOrder(req, res) {
                     account_id: ObjectId(loginUser._id),
                     promotion_id: ObjectId(req.body.promotion_id),
                     location: req.body.location,
+                    receiver_name: req.body.receiver_name,
+                    receiver_phone: req.body.receiver_phone
                 }).save(opts);
                 await promotions.findByIdAndUpdate(req.body.promotion_id, { $inc: { amount: -1 } })
             } else {
@@ -90,6 +92,8 @@ async function createOrder(req, res) {
                     account_id: ObjectId(loginUser._id),
                     promotion_id: null,
                     location: req.body.location,
+                    receiver_name: req.body.receiver_name,
+                    receiver_phone: req.body.receiver_phone
                 }).save(opts);
             }
             await session.commitTransaction();

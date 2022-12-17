@@ -12,6 +12,8 @@ const Order = new Schema({
   account_id: Schema.Types.ObjectId,
   promotion_id: Schema.Types.ObjectId,
   location: String,
+  receiver_name: String,
+  receiver_phone: String,
   created_at: { type: Date, default: now }
 });
 

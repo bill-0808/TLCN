@@ -67,6 +67,15 @@ function getAllProducts(req, res) {
     })
 }
 
+async function getPaggingProduct(req, res) {
+    var page = Number.parseInt(req.query.page)
+    var pageSize = Number.parseInt(req.query.pageSize)
+    page = page ? (page > 0 ? page : 1) : 1
+    pageSize = pageSize ? (pageSize > 0 ? pageSize : 5) : 5
+    const product = await products.find({ is_active: true }).skip((page - 1) * pageSize).limit(pageSize)
+    return res.status(200).send(product)
+}
+
 async function getOneProducts(req, res) {
     let id = req.params.id;
     products.findById(id, async function (err, products) {
@@ -170,6 +179,21 @@ async function updateProducts(req, res) {
     }
 }
 
+async function searchProduct(req, res) {
+    let search = req.query.search;
+    let rgx = (pattern) => new RegExp(`.*${pattern}.*`);
+    let searchRgx = await rgx(search);
+    products.find({ name: { $regex: searchRgx, $options: 'i' }, is_active: true })
+        .then(product => {
+            if (product) {
+                res.status(200).send({ product: product })
+            } else {
+                res.status(500).send({ message: "Not found!!" })
+            }
+        })
+
+}
+
 async function deleteProducts(req, res) {
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
@@ -202,4 +226,6 @@ module.exports = {
     getOneProducts,
     updateProducts,
     deleteProducts,
+    getPaggingProduct,
+    searchProduct,
 };
