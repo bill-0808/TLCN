@@ -7,7 +7,7 @@ async function createBrands(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id, is_active: true })
-        if (loginUser.is_admin !== true) {
+        if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
             if (!req.body) {
@@ -44,7 +44,7 @@ async function updateBrands(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id, is_active: true })
-        if (loginUser.is_admin !== true) {
+        if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
             if (!req.body) {
@@ -74,7 +74,7 @@ async function deleteBrands(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id, is_active: true })
-        if (loginUser.is_admin !== true) {
+        if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
             if (!req.body) {

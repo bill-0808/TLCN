@@ -13,6 +13,7 @@ const shipsRouter = require('./routes/ship/ship.router');
 const promotionsRouter = require('./routes/promotions/promotions.router');
 const ratingsRouter = require('./routes/ratings/ratings.router');
 const orderRouter = require('./routes/orders/orders.router');
+const staticsRouter = require('./routes/statics/statics.router');
 const bodyParser = require('body-parser')
 
 db.connectDB();
@@ -38,5 +39,6 @@ app.use('/ship', shipsRouter);
 app.use('/promotion', promotionsRouter);
 app.use('/order', orderRouter);
 app.use('/rating', ratingsRouter);
+app.use('/statics', staticsRouter);
 
 module.exports = app

@@ -7,7 +7,7 @@ async function createShips(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
-        if (loginUser.is_admin !== true) {
+        if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
             if (!req.body) {
@@ -56,7 +56,7 @@ async function updateShips(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id, is_active: true })
-        if (loginUser.is_admin !== true) {
+        if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
             if (!req.body) {
@@ -89,7 +89,7 @@ async function deleteShips(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
-        if (loginUser.is_admin !== true) {
+        if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
             if (!req.body) {

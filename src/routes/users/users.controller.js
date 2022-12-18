@@ -117,6 +117,32 @@ async function getAllAccount(req, res) {
     }
 }
 
+async function deleteAccount(req, res) {
+    if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        let loginUser = await accounts.findOne({ _id: req.user._id })
+        if (loginUser.is_admin !== true) {
+            res.status(401).send({ message: "Unauthorized!!" })
+        } else {
+            if (!req.body) {
+                res.status(500).send({ message: "Missing body!" });
+                return;
+            } else {
+                let id = req.params.id;
+                accounts.findByIdAndUpdate(id, { is_active: false }, function (err, products) {
+                    if (!err && products) {
+                        res.status(200).send({ message: "delete complete!!" });
+                    } else {
+                        res.status(500).send(err);
+                    }
+                })
+            }
+        }
+    }
+}
+
 async function updateUser(req, res) {
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
@@ -174,4 +200,5 @@ module.exports = {
     getUser,
     updateUser,
     getAllAccount,
+    deleteAccount
 };
