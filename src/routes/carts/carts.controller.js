@@ -43,7 +43,6 @@ async function addToCart(req, res) {
                 product_id: ObjectId(req.body.product_id),
                 account_id: loginUser._id,
                 quantity: req.body.quantity,
-                status: 1,
                 size: req.body.size,
             })
             cart.save(cart).then(data => {
@@ -66,7 +65,6 @@ async function getAllCart(req, res) {
             let cartItem = await {
                 product: product,
                 quantity: cartItems[i].quantity,
-                status: cartItems[i].status,
                 size: cartItems[i].size,
             }
             cartResult.push(cartItem);

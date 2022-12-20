@@ -8,6 +8,7 @@ const OrderDetail = new Schema({
   quantity: Number,
   size: Number,
   order_id: Schema.Types.ObjectId,
+  status: Number,
 });
 
 module.exports = mongoose.model('OrderDetail', OrderDetail);

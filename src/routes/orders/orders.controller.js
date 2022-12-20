@@ -31,8 +31,9 @@ async function createOrder(req, res) {
                             quantity: req.body.items[i].quantity,
                             size: req.body.items[i].size,
                             order_id: id,
+                            status: 1
                         }).save(opts);
-                        await carts.findOneAndUpdate({ product_id: ObjectId(req.body.items[i].product_id), size: req.body.items[i].size, account_id: loginUser._id }, { status: 2 }, opts)
+                        await carts.findOneAndDelete({ product_id: ObjectId(req.body.items[i].product_id), size: req.body.items[i].size, account_id: loginUser._id }, opts)
                     } else {
                         await session.abortTransaction();
                         session.endSession();
@@ -45,14 +46,8 @@ async function createOrder(req, res) {
                         quantity: req.body.items[i].quantity,
                         size: req.body.items[i].size,
                         order_id: id,
+                        status: 1
                     }).save(opts);
-                    await carts({
-                        product_id: req.body.items[i].product_id,
-                        account_id: loginUser._id,
-                        quantity: req.body.items[i].quantity,
-                        status: 2,
-                        size: req.body.items[i].size,
-                    }).save(opts)
                 }
                 let product = await products.findOne({ _id: ObjectId(req.body.items[i].product_id) });
                 if (product.size[req.body.items[i].size] >= req.body.items[i].quantity) {
@@ -127,10 +122,6 @@ async function updateOrderStatus(req, res) {
             if (order.status == 2) {
                 await orders.findByIdAndUpdate(id, { complete_date: new Date() }, { opts });
             }
-            const orderDetail = await orderDetails.find({ order_id: ObjectId(id) });
-            for (let i = 0; i < orderDetail.length; i++) {
-                await carts.findOneAndUpdate({ product_id: ObjectId(orderDetail[i].product_id), size: orderDetail[i].size, account_id: ObjectId(order.account_id) }, { $inc: { status: 1 } }, opts)
-            }
             await session.commitTransaction();
             session.endSession();
             res.status(200).send({ message: "Order updated" })
@@ -196,7 +187,8 @@ async function getOneOrder(req, res) {
                 let orderDetail = await orderDetails.find({ order_id: ObjectId(orders._id) });
                 for (let i = 0; i < orderDetail.length; i++) {
                     let product = await products.findById(orderDetail[i].product_id);
-                    await productInOrder.push(product);
+                    let orderDetailResult = await { status: orderDetail[i].status, product: product };
+                    await productInOrder.push(orderDetailResult);
                 }
                 let count = orderDetail.length;
                 res.status(200).send({ count: count, orderId: orders._id, orderStatus: orders.status, orderDetail: productInOrder });

@@ -7,7 +7,6 @@ const Cart = new Schema({
   product_id: Schema.Types.ObjectId,
   account_id: Schema.Types.ObjectId,
   quantity: Number,
-  status: Number,
   size: Number,
 });
 

@@ -13,12 +13,10 @@ async function register(req, res) {
         return;
     }
     else {
-        const doesExist = await accounts.findOne({ email: req.body.email, is_active: true })
-        if (doesExist) {
-            res.status(500).send({ message: "Email already existed" });
-        } else if (req.body.password != req.body.passwordRepeat) {
+        const registAccount = await accounts.findOne({ email: req.body.email })
+        if (req.body.password != req.body.passwordRepeat) {
             res.status(500).send({ message: "confirm password might not right" });
-        } else {
+        } else if (!registAccount) {
             password = await hashPass(req.body.password);
             var secret = await makeid(6);
             const account = new accounts({
@@ -31,6 +29,36 @@ async function register(req, res) {
                 secret: secret
             })
             account.save(account).then(async data => {
+                let transporter = nodemailer.createTransport(smtpTransport({
+                    service: 'gmail',
+                    host: 'smtp.gmail.com',
+                    auth: {
+                        user: 'shoesshopkutsu@gmail.com',
+                        pass: 'dkbaizlebgxvkona'
+                    }
+                }));
+
+                let mailOptions = {
+                    from: 'shoesshopkutsu@gmail.com',
+                    to: String(data.email),
+                    subject: '[Shoes shop verify email]',
+                    html: `<p>Mã xác nhận đăng ký của bạn ở shoeShop là:</p><br><p>Mã xác nhận: <b>${secret}</b></p>`
+                };
+
+                transporter.sendMail(mailOptions, function (error, info) {
+                    if (error) {
+                        res.status(500).send({ message: error })
+                    } else {
+                        res.status(200).send({ account: data })
+                    }
+                });
+            }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
+        } else if (registAccount.is_active == true) {
+            res.status(500).send({ message: "Email already existed" });
+        } else if (registAccount.is_active == false) {
+            var secret = await makeid(6);
+            registAccount.secret = secret;
+            registAccount.save().then(async data => {
                 let transporter = nodemailer.createTransport(smtpTransport({
                     service: 'gmail',
                     host: 'smtp.gmail.com',

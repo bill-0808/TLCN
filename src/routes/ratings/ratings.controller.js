@@ -3,7 +3,8 @@ const ratings = require('../../models/ratings.model');
 const accounts = require('../../models/accounts.model');
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
-const carts = require('../../models/carts.model');
+const orders = require('../../models/orders.model');
+const orderDetails = require('../../models/orderDetails.model');
 const users = require('../../models/users.model');
 
 async function createRatings(req, res) {
@@ -22,12 +23,15 @@ async function createRatings(req, res) {
             session.startTransaction();
             try {
                 const opts = { session };
-                let cart = await carts.findOneAndUpdate({ product_id: ObjectId(req.body.product_id), user_id: ObjectId(loginUser._id), status: 4 }, { $inc: { status: 1 } }, opts)
-                if (!cart) {
+                let order = await orders.findOne({ user_id: ObjectId(loginUser._id), status: 3 });
+                let orderDetail = await orderDetails.findOne({ order_id: ObjectId(order._id), product_id: ObjectId(req.body.product_id) })
+                if (!order || !orderDetail) {
                     await session.abortTransaction();
                     session.endSession();
-                    res.status(500).send({ message: "Not found in cart" });
+                    res.status(500).send({ message: "Not found in order" });
                     return
+                } else {
+                    await orderDetails.findOneAndUpdate({ order_id: ObjectId(order._id), product_id: ObjectId(req.body.product_id) }, { status: 2 }, { opts })
                 }
                 if (req.files) {
                     let image = [];
