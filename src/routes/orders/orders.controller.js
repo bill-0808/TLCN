@@ -161,10 +161,22 @@ async function getOrderByUser(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
-        orders.find({ account_id: ObjectId(loginUser._id) }, function (err, orders) {
+        let orderList = [];
+        orders.find({ account_id: ObjectId(loginUser._id) }, async function (err, orders) {
             if (!err) {
                 let count = orders.length;
-                res.status(200).send({ count: count, orders: orders });
+                for (let i = 0; i < count; i++) {
+                    let listProductInOrder = [];
+                    let orderDetail = await orderDetails.find({ order_id: ObjectId(orders[i]._id) });
+                    for (let j = 0; j < orderDetail.length; j++) {
+                        let product = await products.findById(orderDetail[j].product_id);
+                        let orderDetailResult = await { status: orderDetail[j].status, product: product };
+                        await listProductInOrder.push(orderDetailResult);
+                    }
+                    let orderInList = await { orderId: orders[i]._id, orderStatus: orders[i].status, orderDetail: listProductInOrder }
+                    await orderList.push(orderInList);
+                }
+                res.status(200).send({ count: count, orders: orderList });
             } else {
                 res.status(500).send(err);
             }
