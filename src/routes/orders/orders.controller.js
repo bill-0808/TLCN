@@ -170,10 +170,10 @@ async function getOrderByUser(req, res) {
                     let orderDetail = await orderDetails.find({ order_id: ObjectId(orders[i]._id) });
                     for (let j = 0; j < orderDetail.length; j++) {
                         let product = await products.findById(orderDetail[j].product_id);
-                        let orderDetailResult = await { status: orderDetail[j].status, product: product };
+                        let orderDetailResult = await { status: orderDetail[j].status, quantity: orderDetail[j].quantity, product: product };
                         await listProductInOrder.push(orderDetailResult);
                     }
-                    let orderInList = await { orderId: orders[i]._id, orderStatus: orders[i].status, orderDetail: listProductInOrder }
+                    let orderInList = await { orderId: orders[i]._id, orderStatus: orders[i].status, orderCreateDay: orders[i].created_at, orderDetail: listProductInOrder }
                     await orderList.push(orderInList);
                 }
                 res.status(200).send({ count: count, orders: orderList });
@@ -199,11 +199,11 @@ async function getOneOrder(req, res) {
                 let orderDetail = await orderDetails.find({ order_id: ObjectId(orders._id) });
                 for (let i = 0; i < orderDetail.length; i++) {
                     let product = await products.findById(orderDetail[i].product_id);
-                    let orderDetailResult = await { status: orderDetail[i].status, product: product };
+                    let orderDetailResult = await { status: orderDetail[i].status, quantity: orderDetail[j].quantity, product: product };
                     await productInOrder.push(orderDetailResult);
                 }
                 let count = orderDetail.length;
-                res.status(200).send({ count: count, orderId: orders._id, orderStatus: orders.status, orderDetail: productInOrder });
+                res.status(200).send({ count: count, order: orders, orderDetail: productInOrder });
             } else {
                 res.status(500).send(err);
             }
