@@ -89,6 +89,7 @@ async function getOneProducts(req, res) {
                     image: ratingsSet[i].image,
                     comment: ratingsSet[i].comment,
                     rate: ratingsSet[i].rate,
+                    created_at: ratingsSet[i].created_at,
                     user: {
                         avatar: user.avatar,
                         name: user.name

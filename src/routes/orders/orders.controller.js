@@ -199,7 +199,7 @@ async function getOneOrder(req, res) {
                 let orderDetail = await orderDetails.find({ order_id: ObjectId(orders._id) });
                 for (let i = 0; i < orderDetail.length; i++) {
                     let product = await products.findById(orderDetail[i].product_id);
-                    let orderDetailResult = await { status: orderDetail[i].status, quantity: orderDetail[i].quantity, product: product };
+                    let orderDetailResult = await { status: orderDetail[i].status, quantity: orderDetail[i].quantity, id: orderDetail[i]._id, product: product };
                     await productInOrder.push(orderDetailResult);
                 }
                 let count = orderDetail.length;
