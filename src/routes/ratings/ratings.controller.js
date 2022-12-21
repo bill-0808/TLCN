@@ -24,14 +24,14 @@ async function createRatings(req, res) {
             try {
                 const opts = { session };
                 let order = await orders.findOne({ user_id: ObjectId(loginUser._id), status: 3 });
-                let orderDetail = await orderDetails.findOne({ order_id: ObjectId(order._id), product_id: ObjectId(req.body.product_id) })
+                let orderDetail = await orderDetails.findOne({ _id: ObjectId(req.body.order_detail_id), product_id: ObjectId(req.body.product_id) })
                 if (!order || !orderDetail) {
                     await session.abortTransaction();
                     session.endSession();
                     res.status(500).send({ message: "Not found in order" });
                     return
                 } else {
-                    await orderDetails.findOneAndUpdate({ order_id: ObjectId(order._id), product_id: ObjectId(req.body.product_id) }, { status: 2 }, { opts })
+                    await orderDetails.findOneAndUpdate({ _id: ObjectId(req.body.order_detail_id), product_id: ObjectId(req.body.product_id) }, { status: 2 }, { opts })
                 }
                 if (req.files) {
                     let image = [];
@@ -49,6 +49,7 @@ async function createRatings(req, res) {
                         comment: req.body.comment,
                         rate: req.body.rate,
                         user_id: ObjectId(loginUserInfo._id),
+                        order_detail_id: ObjectId(req.body.order_detail_id)
                     }).save(opts);
                 }
                 else {
@@ -58,6 +59,7 @@ async function createRatings(req, res) {
                         comment: req.body.comment,
                         rate: req.body.rate,
                         user_id: ObjectId(loginUserInfo._id),
+                        order_detail_id: ObjectId(req.body.order_detail_id)
                     }).save(opts);
                 }
                 await session.commitTransaction();
@@ -74,6 +76,73 @@ async function createRatings(req, res) {
     }
 }
 
+async function updateRatings(req, res) {
+    if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        let loginUser = await accounts.findOne({ _id: req.user._id })
+        let loginUserInfo = await users.findOne({ _id: loginUser.user_id })
+        if (!req.body) {
+            res.status(500).send({ message: "Missing body!" });
+            return;
+        }
+        else {
+            let order = await orders.findOne({ user_id: ObjectId(loginUser._id), status: 3 });
+            let orderDetail = await orderDetails.findOne({ _id: ObjectId(req.body.order_detail_id), product_id: ObjectId(req.body.product_id) })
+            if (!order || !orderDetail) {
+                res.status(500).send({ message: "Not found in order" });
+                return
+            } else {
+                if (req.files) {
+                    let image = [];
+                    for (let i = 0; i < req.files.length; i++) {
+                        await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
+                            image.push(result.secure_url);
+                        }).catch(err => {
+                            console.log(err);
+                        })
+                    }
+                    await ratings.findOneAndUpdate({
+                        order_detail_id: ObjectId(req.body.order_detail_id),
+                        product_id: ObjectId(req.body.product_id)
+                    }, {
+                        image: image,
+                        comment: req.body.comment,
+                        rate: req.body.rate
+                    }).then(rating => {
+                        if (rating) {
+                            res.status(200).send({ ratings: rating })
+                            return;
+                        } else {
+                            res.status(500).send({ message: "update fail" })
+                            return;
+                        }
+                    })
+                }
+                else {
+                    await ratings.findOneAndUpdate({
+                        order_detail_id: ObjectId(req.body.order_detail_id),
+                        product_id: ObjectId(req.body.product_id)
+                    }, {
+                        comment: req.body.comment,
+                        rate: req.body.rate
+                    }).then(rating => {
+                        if (rating) {
+                            res.status(200).send({ ratings: rating })
+                            return;
+                        } else {
+                            res.status(500).send({ message: "update fail" })
+                            return;
+                        }
+                    })
+                }
+            }
+        }
+    }
+}
+
 module.exports = {
     createRatings,
+    updateRatings
 };

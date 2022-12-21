@@ -10,6 +10,7 @@ const Rating = new Schema({
   comment: String,
   rate: Number,
   user_id: Schema.Types.ObjectId,
+  order_detail_id: Schema.Types.ObjectId,
   created_at: { type: Date, default: now }
 });
 

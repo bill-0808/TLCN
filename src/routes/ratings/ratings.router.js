@@ -1,10 +1,11 @@
 const express = require('express');
-const { createRatings } = require('./ratings.controller')
+const { createRatings, updateRatings } = require('./ratings.controller')
 const { authenticate } = require('../../helpers/jwt_helper')
 const { upload } = require('../../helpers/upload_file_helper')
 
-const newsRouter = express.Router();
+const ratingsRouter = express.Router();
 
-newsRouter.post("/", authenticate, upload.any('image'), createRatings);
+ratingsRouter.post("/", authenticate, upload.any('image'), createRatings);
+ratingsRouter.put("/", authenticate, upload.any('image'), updateRatings);
 
-module.exports = newsRouter;
+module.exports = ratingsRouter;
