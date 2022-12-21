@@ -162,7 +162,7 @@ async function getOrderByUser(req, res) {
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
         let orderList = [];
-        orders.find({ account_id: ObjectId(loginUser._id) }, async function (err, orders) {
+        orders.find({ account_id: ObjectId(loginUser._id) }, null, { sort: { created_at: -1 } }, async function (err, orders) {
             if (!err) {
                 let count = orders.length;
                 for (let i = 0; i < count; i++) {
