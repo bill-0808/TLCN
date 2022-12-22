@@ -142,7 +142,23 @@ async function updateRatings(req, res) {
     }
 }
 
+async function getOneRate(req, res) {
+    let order_detail_id = req.params.order_detail_id;
+    let product_id = req.params.product_id;
+    ratings.findOne({
+        order_detail_id: ObjectId(order_detail_id),
+        product_id: ObjectId(product_id)
+    }, function (err, ratings) {
+        if (!err) {
+            res.status(200).send({ ratings: ratings });
+        } else {
+            res.status(500).send(err);
+        }
+    })
+}
+
 module.exports = {
     createRatings,
-    updateRatings
+    updateRatings,
+    getOneRate
 };
