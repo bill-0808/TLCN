@@ -170,7 +170,7 @@ async function getOrderByUser(req, res) {
                     let orderDetail = await orderDetails.find({ order_id: ObjectId(orders[i]._id) });
                     for (let j = 0; j < orderDetail.length; j++) {
                         let product = await products.findById(orderDetail[j].product_id);
-                        let orderDetailResult = await { status: orderDetail[j].status, quantity: orderDetail[j].quantity, id: orderDetail[j]._id, product: product };
+                        let orderDetailResult = await { status: orderDetail[j].status, quantity: orderDetail[j].quantity, id: orderDetail[j]._id, size: orderDetail[j].size, product: product };
                         await listProductInOrder.push(orderDetailResult);
                     }
                     let orderInList = await { orderId: orders[i]._id, orderStatus: orders[i].status, orderCreateDay: orders[i].created_at, orderDetail: listProductInOrder }
@@ -199,7 +199,7 @@ async function getOneOrder(req, res) {
                 let orderDetail = await orderDetails.find({ order_id: ObjectId(orders._id) });
                 for (let i = 0; i < orderDetail.length; i++) {
                     let product = await products.findById(orderDetail[i].product_id);
-                    let orderDetailResult = await { status: orderDetail[i].status, quantity: orderDetail[i].quantity, id: orderDetail[i]._id, product: product };
+                    let orderDetailResult = await { status: orderDetail[i].status, quantity: orderDetail[i].quantity, id: orderDetail[i]._id, size: orderDetail[i].size, product: product };
                     await productInOrder.push(orderDetailResult);
                 }
                 let count = orderDetail.length;
