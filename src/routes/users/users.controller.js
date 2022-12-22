@@ -195,10 +195,26 @@ async function updateUser(req, res) {
     }
 }
 
+async function searchAccount(req, res) {
+    let search = req.query.search;
+    let rgx = (pattern) => new RegExp(`.*${pattern}.*`);
+    let searchRgx = await rgx(search);
+    accounts.find({ email: { $regex: searchRgx, $options: 'i' }, is_active: true })
+        .then(accounts => {
+            if (accounts) {
+                res.status(200).send({ accounts: accounts })
+            } else {
+                res.status(500).send({ message: "Not found!!" })
+            }
+        })
+
+}
+
 module.exports = {
     firstLogin,
     getUser,
     updateUser,
     getAllAccount,
-    deleteAccount
+    deleteAccount,
+    searchAccount
 };
