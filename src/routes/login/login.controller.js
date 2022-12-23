@@ -6,6 +6,7 @@ const nodemailer = require('nodemailer');
 const smtpTransport = require('nodemailer-smtp-transport');
 const { makeid } = require('../../helpers/user_util');
 const { ObjectId } = require('mongodb');
+const { v4: uuidv4 } = require('uuid');
 
 async function register(req, res) {
     if (!req.body) {
@@ -158,7 +159,7 @@ async function verifyResetPassword(req, res) {
 }
 
 async function login(req, res) {
-    let loginUser = await accounts.findOne({ email: req.body.email, is_active: true })
+    let loginUser = await accounts.findOne({ email: req.body.email, is_active: true, is_admin: false, is_seller: false })
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
@@ -197,10 +198,111 @@ async function login(req, res) {
     }
 }
 
+async function loginAdmin(req, res) {
+    let loginUser = await accounts.findOne({ email: req.body.email, is_active: true })
+    if (loginUser.is_admin == true || loginUser.is_seller == true) {
+        if (!req.body) {
+            res.status(500).send({ message: "Missing body!" });
+            return;
+        } else {
+            if (!loginUser) {
+                res.status(404).send({ message: "Email might not correct!" });
+            } else {
+                let checkPass = await bcrypt.compare(req.body.password, loginUser.password);
+                if (checkPass) {
+                    let token = await createToken(loginUser._id);
+                    if (loginUser.user_id == null) {
+                        res.status(200).send({
+                            token: token, user: {
+                                _id: "",
+                                name: "",
+                                age: "",
+                                gender: "",
+                                address: "",
+                                phone: "",
+                                avatar: "",
+                                __v: "",
+                            },
+                            is_admin: loginUser.is_admin,
+                            is_seller: loginUser.is_seller
+                        });
+                    } else {
+                        let user = await users.findById(loginUser.user_id);
+                        res.status(200).send({
+                            token: token, user: user, is_admin: loginUser.is_admin, is_seller: loginUser.is_seller
+                        });
+                    }
+                } else {
+                    res.status(401).send({ message: "Wrong password!!" });
+                }
+            }
+        }
+    } else {
+        res.status(404).send({ message: "Email might not correct!" });
+    }
+}
+
+async function loginGoogle(req, res) {
+    let isLoginBefore = await accounts.findOne({ google_id: req.body.google_id });
+    console.log(req.body.google_id);
+    if (!isLoginBefore) {
+        const account = new accounts({
+            email: uuidv4(),
+            password: null,
+            user_id: null,
+            is_active: true,
+            is_admin: false,
+            is_seller: false,
+            google_id: req.body.google_id
+        })
+        account.save(account).then(async data => {
+            let token = await createToken(data._id);
+            res.status(200).send({
+                message: "Login google success",
+                token: token,
+                user: {
+                    _id: "",
+                    name: "",
+                    age: "",
+                    gender: "",
+                    address: "",
+                    phone: "",
+                    avatar: "",
+                    __v: ""
+                }
+            })
+        })
+    } else {
+        let token = await createToken(isLoginBefore._id);
+        if (isLoginBefore.user_id == null) {
+            res.status(200).send({
+                token: token,
+                user: {
+                    _id: "",
+                    name: "",
+                    age: "",
+                    gender: "",
+                    address: "",
+                    phone: "",
+                    avatar: "",
+                    __v: ""
+                }
+            });
+        } else {
+            let user = await usersModel.findById(isLoginBefore.user_id);
+            res.status(200).send({
+                token: token, user: user
+            });
+        }
+    }
+}
+
 module.exports = {
     register,
     login,
     verify,
     verifyResetPassword,
-    resetPassword
+    resetPassword,
+    loginAdmin,
+    loginGoogle
 };

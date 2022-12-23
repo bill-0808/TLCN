@@ -12,7 +12,8 @@ const Account = new Schema({
     is_active: Boolean,
     is_seller: Boolean,
     created_at: { type: Date, default: now },
-    secret: String
+    secret: String,
+    google_id: String
 });
 
 module.exports = mongoose.model('Account', Account);
