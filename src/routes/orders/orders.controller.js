@@ -173,7 +173,7 @@ async function getOrderByUser(req, res) {
                         let orderDetailResult = await { status: orderDetail[j].status, quantity: orderDetail[j].quantity, id: orderDetail[j]._id, size: orderDetail[j].size, product: product };
                         await listProductInOrder.push(orderDetailResult);
                     }
-                    let orderInList = await { orderId: orders[i]._id, orderStatus: orders[i].status, orderCreateDay: orders[i].created_at, orderDetail: listProductInOrder }
+                    let orderInList = await { orderId: orders[i]._id, orderStatus: orders[i].status, orderCreateDay: orders[i].created_at, orderTotal: orders[i].total, orderDetail: listProductInOrder }
                     await orderList.push(orderInList);
                 }
                 res.status(200).send({ count: count, orders: orderList });
