@@ -10,7 +10,7 @@ async function getStaticsByMonth(req, res) {
         if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
-            if (!req.body) {
+            if (!req.query) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
@@ -22,7 +22,7 @@ async function getStaticsByMonth(req, res) {
                 }]).then(async data => {
                     result = [];
                     for (let i = 0; i < data.length; i++) {
-                        if (data[i]._id.month == req.body.month && data[i]._id.year == req.body.year) {
+                        if (data[i]._id.month == req.query.month && data[i]._id.year == req.query.year) {
                             await result.push(data[i]);
                         }
                     }
@@ -42,7 +42,7 @@ async function getStaticsByYear(req, res) {
         if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
-            if (!req.body) {
+            if (!req.query) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
@@ -54,7 +54,7 @@ async function getStaticsByYear(req, res) {
                 }]).then(async data => {
                     result = [];
                     for (let i = 0; i < data.length; i++) {
-                        if (data[i]._id.year == req.body.year) {
+                        if (data[i]._id.year == req.query.year) {
                             await result.push(data[i]);
                         }
                     }
