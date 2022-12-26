@@ -200,42 +200,39 @@ async function login(req, res) {
 
 async function loginAdmin(req, res) {
     let loginUser = await accounts.findOne({ email: req.body.email, is_active: true })
-    if (loginUser.is_admin == true || loginUser.is_seller == true) {
+    if (loginUser && (loginUser.is_admin == true || loginUser.is_seller == true)) {
         if (!req.body) {
             res.status(500).send({ message: "Missing body!" });
             return;
         } else {
-            if (!loginUser) {
-                res.status(404).send({ message: "Email might not correct!" });
-            } else {
-                let checkPass = await bcrypt.compare(req.body.password, loginUser.password);
-                if (checkPass) {
-                    let token = await createToken(loginUser._id);
-                    if (loginUser.user_id == null) {
-                        res.status(200).send({
-                            token: token, user: {
-                                _id: "",
-                                name: "",
-                                age: "",
-                                gender: "",
-                                address: "",
-                                phone: "",
-                                avatar: "",
-                                __v: "",
-                            },
-                            is_admin: loginUser.is_admin,
-                            is_seller: loginUser.is_seller
-                        });
-                    } else {
-                        let user = await users.findById(loginUser.user_id);
-                        res.status(200).send({
-                            token: token, user: user, is_admin: loginUser.is_admin, is_seller: loginUser.is_seller
-                        });
-                    }
+            let checkPass = await bcrypt.compare(req.body.password, loginUser.password);
+            if (checkPass) {
+                let token = await createToken(loginUser._id);
+                if (loginUser.user_id == null) {
+                    res.status(200).send({
+                        token: token, user: {
+                            _id: "",
+                            name: "",
+                            age: "",
+                            gender: "",
+                            address: "",
+                            phone: "",
+                            avatar: "",
+                            __v: "",
+                        },
+                        is_admin: loginUser.is_admin,
+                        is_seller: loginUser.is_seller
+                    });
                 } else {
-                    res.status(401).send({ message: "Wrong password!!" });
+                    let user = await users.findById(loginUser.user_id);
+                    res.status(200).send({
+                        token: token, user: user, is_admin: loginUser.is_admin, is_seller: loginUser.is_seller
+                    });
                 }
+            } else {
+                res.status(401).send({ message: "Wrong password!!" });
             }
+
         }
     } else {
         res.status(404).send({ message: "Email might not correct!" });
