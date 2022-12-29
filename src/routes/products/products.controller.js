@@ -68,7 +68,7 @@ function getAllProducts(req, res) {
 }
 
 async function getPaggingProduct(req, res) {
-    let totalProduct = await products.count({});
+    let totalProduct = await products.count({ is_active: true });
     var page = Number.parseInt(req.query.page)
     var pageSize = Number.parseInt(req.query.pageSize)
     page = page ? (page > 0 ? page : 1) : 1
