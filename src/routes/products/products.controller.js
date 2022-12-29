@@ -20,7 +20,7 @@ async function createProduct(req, res) {
                 return;
             }
             else {
-                if (req.files) {
+                if (req.files.length != 0) {
                     let productImage = [];
                     for (let i = 0; i < req.files.length; i++) {
                         await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
@@ -118,7 +118,7 @@ async function updateProducts(req, res) {
                 return;
             } else {
                 let id = req.params.id;
-                if (req.files) {
+                if (req.files.length != 0) {
                     let productImage = [];
                     for (let i = 0; i < req.files.length; i++) {
                         await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
@@ -127,7 +127,6 @@ async function updateProducts(req, res) {
                             console.log(err);
                         })
                     }
-
                     let bodyData = {
                         product_image: productImage,
                         name: req.body.name,

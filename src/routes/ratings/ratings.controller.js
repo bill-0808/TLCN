@@ -33,7 +33,7 @@ async function createRatings(req, res) {
                 } else {
                     await orderDetails.findOneAndUpdate({ _id: ObjectId(req.body.order_detail_id), product_id: ObjectId(req.body.product_id) }, { status: 2 }, { opts })
                 }
-                if (req.files) {
+                if (req.files.length != 0) {
                     let image = [];
                     for (let i = 0; i < req.files.length; i++) {
                         await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
@@ -94,7 +94,7 @@ async function updateRatings(req, res) {
                 res.status(500).send({ message: "Not found in order" });
                 return
             } else {
-                if (req.files) {
+                if (req.files.length != 0) {
                     let image = [];
                     for (let i = 0; i < req.files.length; i++) {
                         await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
