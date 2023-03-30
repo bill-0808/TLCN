@@ -50,7 +50,7 @@ async function createOrder(req, res) {
                     }).save(opts);
                 }
                 let product = await products.findOne({ _id: ObjectId(req.body.items[i].product_id) });
-                if (product.size[req.body.items[i].size] >= req.body.items[i].quantity) {
+                if (parseInt(product.size[req.body.items[i].size]) >= parseInt(req.body.items[i].quantity)) {
                     let sizeBody = await product.size;
                     sizeBody[req.body.items[i].size] -= await req.body.items[i].quantity
                     await products.findByIdAndUpdate(ObjectId(req.body.items[i].product_id), { size: sizeBody })
