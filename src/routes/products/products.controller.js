@@ -68,12 +68,37 @@ function getAllProducts(req, res) {
 }
 
 async function getPaggingProduct(req, res) {
-    let totalProduct = await products.count({ is_active: true });
     var page = Number.parseInt(req.query.page)
-    var pageSize = Number.parseInt(req.query.pageSize)
+    var pageSize = Number.parseInt(req.query.pageSize);
+    let types = req.query.type ? JSON.parse(req.query.type) : null;
+    let brands = req.query.brand ? JSON.parse(req.query.brand) : null;
+    let colors = req.query.color ? JSON.parse(req.query.color) : null;
+    let sizes = req.query.size ? JSON.parse(req.query.size) : null;
+    let genders = req.query.gender ? JSON.parse(req.query.gender) : null;
+    const filters = {
+        is_active: true
+    };
+    if (types) {
+        filters.type = { $in: types };
+    }
+    if (genders) {
+        filters.gender = { $in: genders };
+    }
+    if (brands) {
+        filters.brand = { $in: brands };
+    }
+    if (colors) {
+        filters.color = { $in: colors };
+    }
+    if (sizes) {
+        for(let i = 0; i < sizes.length; i++) {
+            filters[`size.${sizes[i]}`] = { $ne: 0 }
+        }
+    }
     page = page ? (page > 0 ? page : 1) : 1
     pageSize = pageSize ? (pageSize > 0 ? pageSize : 5) : 5
-    const product = await products.find({ is_active: true }).skip((page - 1) * pageSize).limit(pageSize)
+    const product = await products.find(filters).skip((page - 1) * pageSize).limit(pageSize);
+    let totalProduct = await products.count(filters);
     return res.status(200).send({ count: totalProduct, product: product })
 }
 
