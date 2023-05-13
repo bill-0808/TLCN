@@ -75,9 +75,15 @@ async function getPaggingProduct(req, res) {
     let colors = req.query.color ? JSON.parse(req.query.color) : null;
     let sizes = req.query.size ? JSON.parse(req.query.size) : null;
     let genders = req.query.gender ? JSON.parse(req.query.gender) : null;
+    let search = req.query.search;
+    let rgx = (pattern) => new RegExp(`.*${pattern}.*`);
+    let searchRgx = await rgx(search);
     const filters = {
         is_active: true
     };
+    if(search) {
+        filters.name = { $regex: searchRgx, $options: 'i' };
+    }
     if (types) {
         filters.type = { $in: types };
     }

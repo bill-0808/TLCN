@@ -7,6 +7,7 @@ const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
 const orders = require('../../models/orders.model');
 const promotions = require('../../models/promotions.model');
+const usersModel = require('../../models/users.model');
 
 async function createOrder(req, res) {
     if (!req.body) {
@@ -141,7 +142,22 @@ async function getAllOrder(req, res) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
-        orders.find({}, function (err, orders) {
+        let dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom) : null;
+        let dateTo = req.query.dateTo ? new Date(req.query.dateTo) : null;
+        let search = req.query.search;
+        let rgx = (pattern) => new RegExp(`.*${pattern}.*`);
+        let searchRgx = await rgx(search);
+        let dateFilter = {};
+        if(search) {
+            dateFilter.receiver_name = { $regex: searchRgx, $options: 'i' };
+        }
+        if (dateFrom && dateTo) {
+            dateFilter.created_at = {
+                $gte: dateFrom,
+                $lte: dateTo
+            }
+        }
+        orders.find(dateFilter, function (err, orders) {
             if (!err) {
                 let count = orders.length;
                 res.status(200).send({ count: count, orders: orders });
@@ -162,7 +178,18 @@ async function getOrderByUser(req, res) {
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
         let orderList = [];
-        orders.find({ account_id: ObjectId(loginUser._id) }, null, { sort: { created_at: -1 } }, async function (err, orders) {
+        let dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom) : null;
+        let dateTo = req.query.dateTo ? new Date(req.query.dateTo) : null;
+        let dateFilter = {
+            account_id: ObjectId(loginUser._id)
+        };
+        if (dateFrom && dateTo) {
+            dateFilter.created_at = {
+                $gte: dateFrom,
+                $lte: dateTo
+            }
+        }
+        orders.find(dateFilter, null, { sort: { created_at: -1 } }, async function (err, orders) {
             if (!err) {
                 let count = orders.length;
                 for (let i = 0; i < count; i++) {
