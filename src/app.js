@@ -14,6 +14,7 @@ const promotionsRouter = require('./routes/promotions/promotions.router');
 const ratingsRouter = require('./routes/ratings/ratings.router');
 const orderRouter = require('./routes/orders/orders.router');
 const staticsRouter = require('./routes/statics/statics.router');
+const chatsRouter = require('./routes/chats/chats.router')
 const bodyParser = require('body-parser')
 
 db.connectDB();
@@ -40,5 +41,6 @@ app.use('/promotion', promotionsRouter);
 app.use('/order', orderRouter);
 app.use('/rating', ratingsRouter);
 app.use('/statics', staticsRouter);
+app.use('/chats', chatsRouter);
 
 module.exports = app
