@@ -1,6 +1,7 @@
 const accounts = require('../../models/accounts.model')
 // const { cloudinary, options } = require('../../helpers/cloudinary_helper');
 const chatsModel = require('../../models/chats.model');
+const usersModel = require('../../models/users.model');
 const { ObjectId } = require('mongodb');
 
 async function createChat(req, res) {
@@ -14,9 +15,15 @@ async function createChat(req, res) {
             return;
         }
         else {
+            let isSeller;
+            if(loginUser.is_seller) {
+                isSeller = true;
+            } else {
+                isSeller = false;
+            }
             const achat = new chatsModel({
-                sender_id: ObjectId(loginUser._id),
-                receiver_id: ObjectId(req.body.receiver_id),
+                account_id: ObjectId(loginUser._id),
+                is_admin: isSeller,
                 message: req.body.message,
                 is_read: false
             })
@@ -34,8 +41,7 @@ async function getAllChat(req, res) {
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id });
         if (loginUser.is_seller) {
-            let condition = [{ sender_id: ObjectId(req.query.user_id) }, { receiver_id: ObjectId(loginUser._id) }]
-            chatsModel.find({ $or: condition, $sort: { created_at: -1 } }, function (err, chats) {
+            chatsModel.find({ account_id: ObjectId(req.query.user_id), $sort: { created_at: -1 } }, function (err, chats) {
                 if (!err) {
                     res.status(200).send({ chats: chats });
                 } else {
@@ -43,8 +49,7 @@ async function getAllChat(req, res) {
                 }
             })
         } else {
-            let condition = [{ sender_id: ObjectId(loginUser._id) }, { receiver_id: ObjectId(req.query.user_id) }]
-            chatsModel.find({ $or: condition, $sort: { created_at: -1 } }, function (err, chats) {
+            chatsModel.find({ account_id: ObjectId(loginUser._id), $sort: { created_at: -1 } }, function (err, chats) {
                 if (!err) {
                     res.status(200).send({ chats: chats });
                 } else {
@@ -62,14 +67,30 @@ async function getListUserChat(req, res) {
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id });
         if (loginUser.is_seller) {
-            chatsModel.find({ receiver_id: ObjectId(loginUser._id) }, async function (err, chats) {
+            chatsModel.find({}, async function (err, chats) {
                 if (!err) {
                     let listUser = new Set();
+                    let users = [];
+                    let isRead = []
                     for (let i = 0; i < chats.length; i++) {
-                        listUser.add(chats[i].sender_id.toString());
+                        listUser.add(chats[i].account_id.toString());
                     }
                     listUser = Array.from(listUser);
-                    res.status(200).send({ users: listUser });
+                    for (let i = 0; i < listUser.length; i++) {
+                        for(let j = 0; j < chats.length; j++) {
+                            if(chats[i].is_read == false && chats[i].account_id == listUser[i]) {
+                                let tempIsRead = {};
+                                tempIsRead.is_read = false;
+                                tempIsRead.user = listUser[i];
+                                isRead.push(tempIsRead);
+                            }
+                        }
+                        isRead = [...new Set(isRead.map(JSON.stringify))].map(JSON.parse);
+                        let account = await accounts.findOne({_id: listUser[i]});
+                        let tempUser = await usersModel.findOne({_id: account.user_id});
+                        users.push(tempUser);
+                    }
+                    res.status(200).send({ users: users, is_read: isRead });
                 } else {
                     res.status(500).send(err);
                 }

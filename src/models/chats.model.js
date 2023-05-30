@@ -5,8 +5,8 @@ const now = new Date();
 
 const Chat = new Schema({
   id: ObjectId,
-  sender_id: Schema.Types.ObjectId,
-  receiver_id: Schema.Types.ObjectId,
+  account_id: Schema.Types.ObjectId,
+  is_admin: Boolean,
   message: String,
   is_read: Boolean,
   created_at: { type: Date, default: now } 
