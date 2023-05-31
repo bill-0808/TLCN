@@ -16,7 +16,7 @@ async function createChat(req, res) {
         }
         else {
             let isSeller;
-            if(loginUser.is_seller) {
+            if (loginUser.is_seller) {
                 isSeller = true;
             } else {
                 isSeller = false;
@@ -41,17 +41,29 @@ async function getAllChat(req, res) {
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id });
         if (loginUser.is_seller) {
-            chatsModel.find({ account_id: ObjectId(req.query.user_id), $sort: { created_at: -1 } }, function (err, chats) {
+            chatsModel.updateMany({ account_id: ObjectId(req.query.user_id), $sort: { created_at: -1 } }, { is_read: true }, function (err, chats) {
                 if (!err) {
-                    res.status(200).send({ chats: chats });
+                    return chatsModel.find({ account_id: ObjectId(req.query.user_id), $sort: { created_at: -1 } }, function (err, chats) {
+                        if (!err) {
+                            res.status(200).send({ chats: chats });
+                        } else {
+                            res.status(500).send(err);
+                        }
+                    });
                 } else {
                     res.status(500).send(err);
                 }
             })
         } else {
-            chatsModel.find({ account_id: ObjectId(loginUser._id), $sort: { created_at: -1 } }, function (err, chats) {
+            chatsModel.updateMany({ account_id: ObjectId(loginUser._id), $sort: { created_at: -1 } }, { is_read: true }, function (err, chats) {
                 if (!err) {
-                    res.status(200).send({ chats: chats });
+                    return chatsModel.find({ account_id: ObjectId(loginUser._id), $sort: { created_at: -1 } }, function (err, chats) {
+                        if (!err) {
+                            res.status(200).send({ chats: chats });
+                        } else {
+                            res.status(500).send(err);
+                        }
+                    });
                 } else {
                     res.status(500).send(err);
                 }
@@ -71,26 +83,37 @@ async function getListUserChat(req, res) {
                 if (!err) {
                     let listUser = new Set();
                     let users = [];
-                    let isRead = []
+                    let isRead = [];
+                    let tempUser = {};
+                    let userId = [];
+                    let user;
                     for (let i = 0; i < chats.length; i++) {
                         listUser.add(chats[i].account_id.toString());
                     }
                     listUser = Array.from(listUser);
                     for (let i = 0; i < listUser.length; i++) {
-                        for(let j = 0; j < chats.length; j++) {
-                            if(chats[i].is_read == false && chats[i].account_id == listUser[i]) {
-                                let tempIsRead = {};
-                                tempIsRead.is_read = false;
-                                tempIsRead.user = listUser[i];
-                                isRead.push(tempIsRead);
-                            }
-                        }
-                        isRead = [...new Set(isRead.map(JSON.stringify))].map(JSON.parse);
-                        let account = await accounts.findOne({_id: listUser[i]});
-                        let tempUser = await usersModel.findOne({_id: account.user_id});
-                        users.push(tempUser);
+                        let account = await accounts.findOne({ _id: listUser[i] });
+                        let tempUser = await usersModel.findOne({ _id: account.user_id });
+                        userId.push(tempUser);
                     }
-                    res.status(200).send({ users: users, is_read: isRead });
+                    for (let j = 0; j < chats.length; j++) {
+                        if (chats[j].is_read == false) {
+                            let tempIsRead = {};
+                            tempIsRead.is_read = false;
+                            tempIsRead.user = chats[j].account_id;
+                            isRead.push(tempIsRead);
+                        }
+                    }
+                    isRead = [...new Set(isRead.map(JSON.stringify))].map(JSON.parse);
+
+                    for (let i = 0; i < isRead.length; i++) {
+                        let account = await accounts.findOne({ _id: isRead[i].user });
+                        tempUser = await usersModel.findOne({ _id: account.user_id });
+                        tempUser.is_read = false;
+                        user = { tempUser: tempUser, is_read: false }
+                        users.push(user);
+                    }
+                    res.status(200).send({ users: userId, is_read: users });
                 } else {
                     res.status(500).send(err);
                 }
