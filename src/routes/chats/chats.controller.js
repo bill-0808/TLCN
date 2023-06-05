@@ -21,15 +21,32 @@ async function createChat(req, res) {
             } else {
                 isSeller = false;
             }
-            const achat = new chatsModel({
-                account_id: ObjectId(loginUser._id),
-                is_admin: isSeller,
-                message: req.body.message,
-                is_read: false
-            })
-            achat.save(achat).then(data => {
-                res.status(201).send(data);
-            }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
+            if (isSeller) {
+                let user = await usersModel.findOne({ _id: req.body.user_id })
+                let account = await accounts.findOne({ user_id: user._id });
+                const achat = new chatsModel({
+                    user_id: ObjectId(user._id),
+                    account_id: ObjectId(account._id),
+                    is_admin: isSeller,
+                    message: req.body.message,
+                    is_read: false
+                })
+                achat.save(achat).then(data => {
+                    res.status(201).send(data);
+                }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
+            } else {
+                let user = await usersModel.findOne({ _id: loginUser.user_id });
+                const achat = new chatsModel({
+                    user_id: ObjectId(user._id),
+                    account_id: ObjectId(loginUser._id),
+                    is_admin: isSeller,
+                    message: req.body.message,
+                    is_read: false
+                })
+                achat.save(achat).then(data => {
+                    res.status(201).send(data);
+                }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
+            }
         }
     }
 }
