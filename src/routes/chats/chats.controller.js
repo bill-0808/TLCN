@@ -60,7 +60,7 @@ async function getAllChat(req, res) {
         if (loginUser.is_seller) {
             chatsModel.updateMany({ account_id: ObjectId(req.query.user_id), $sort: { created_at: -1 } }, { is_read: true }, function (err, chats) {
                 if (!err) {
-                    return chatsModel.find({ account_id: ObjectId(req.query.user_id), $sort: { created_at: -1 } }, function (err, chats) {
+                    return chatsModel.find({ user_id: ObjectId(req.query.user_id), $sort: { created_at: -1 } }, function (err, chats) {
                         if (!err) {
                             res.status(200).send({ chats: chats });
                         } else {
