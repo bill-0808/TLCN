@@ -9,7 +9,9 @@ const Chat = new Schema({
   account_id: Schema.Types.ObjectId,
   is_admin: Boolean,
   message: String,
+  image: String,
   is_read: Boolean,
+  is_user_read: Boolean,
   created_at: { type: Date, default: now } 
 });
 
