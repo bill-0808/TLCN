@@ -5,7 +5,7 @@ const { authenticate } = require('../../helpers/jwt_helper')
 
 const chatsRouter = express.Router();
 
-chatsRouter.post("/", authenticate, upload.single('image'), createChat);
+chatsRouter.post("/", authenticate, upload.any('image'), createChat);
 chatsRouter.get("/", authenticate, getAllChat);
 chatsRouter.get("/userList", authenticate, getListUserChat);
 chatsRouter.get("/isRead", authenticate, IsAdminChat);

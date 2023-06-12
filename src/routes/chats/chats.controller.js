@@ -21,14 +21,23 @@ async function createChat(req, res) {
             } else {
                 isSeller = false;
             }
-            let thumbnail = null;
-            if (req.file) {
-                await cloudinary.uploader.upload(req.file.path, options).then(result => {
-                    thumbnail = result.secure_url ? result.secure_url : null;
-                }).catch(err => {
-                    console.log(err);
-                })
+            let thumbnail = [];
+            if (req.files.length != 0) {
+                for (let i = 0; i < req.files.length; i++) {
+                    await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
+                        thumbnail.push(result.secure_url);
+                    }).catch(err => {
+                        console.log(err);
+                    })
+                }
             }
+            // if (req.file) {
+            //     await cloudinary.uploader.upload(req.file.path, options).then(result => {
+            //         thumbnail = result.secure_url ? result.secure_url : null;
+            //     }).catch(err => {
+            //         console.log(err);
+            //     })
+            // }
             if (isSeller) {
                 let user = await usersModel.findOne({ _id: req.body.user_id })
                 let account = await accounts.findOne({ user_id: user._id });
@@ -37,31 +46,40 @@ async function createChat(req, res) {
                     account_id: ObjectId(account._id),
                     is_admin: isSeller,
                     message: req.body.message,
-                    is_read: false,
+                    is_read: true,
                     is_user_read: false,
-                    image: thumbnail
+                    image: thumbnail ? thumbnail : []
                 })
                 achat.save(achat).then(data => {
                     res.status(201).send(data);
                 }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
             } else {
                 let user = await usersModel.findOne({ _id: loginUser.user_id });
-                let thumbnail = null;
-                if (req.file) {
-                    await cloudinary.uploader.upload(req.file.path, options).then(result => {
-                        thumbnail = result.secure_url ? result.secure_url : null;
-                    }).catch(err => {
-                        console.log(err);
-                    })
+                let thumbnail = [];
+                if (req.files.length != 0) {
+                    for (let i = 0; i < req.files.length; i++) {
+                        await cloudinary.uploader.upload(req.files[i].path, options).then(result => {
+                            thumbnail.push(result.secure_url);
+                        }).catch(err => {
+                            console.log(err);
+                        })
+                    }
                 }
+                // if (req.file) {
+                //     await cloudinary.uploader.upload(req.file.path, options).then(result => {
+                //         thumbnail = result.secure_url ? result.secure_url : null;
+                //     }).catch(err => {
+                //         console.log(err);
+                //     })
+                // }
                 const achat = new chatsModel({
                     user_id: ObjectId(user._id),
                     account_id: ObjectId(loginUser._id),
                     is_admin: isSeller,
                     message: req.body.message,
                     is_read: false,
-                    is_user_read: false,
-                    image: thumbnail
+                    is_user_read: true,
+                    image: thumbnail ? thumbnail : []
                 })
                 achat.save(achat).then(data => {
                     res.status(201).send(data);
