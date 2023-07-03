@@ -134,6 +134,29 @@ async function updateOrderStatus(req, res) {
     }
 }
 
+async function deleteOrder(req, res) {
+    if (!req.body) {
+        res.status(500).send({ message: "Missing body!" });
+        return;
+    } else if (!req.user) {
+        res.status(401).send({ message: "Unauthenticate!!" });
+        return;
+    } else {
+        // let loginUser = await accounts.findOne({ _id: req.user._id });
+        let id = await req.params.id;
+
+        const order = await orders.findByIdAndUpdate(id, { status: 500 }).then(data => {
+            if (!data) {
+                res.status(404).send({ message: "Not found!!" });
+            } else {
+                res.status(200).send({ message: "Order updated" });
+            }
+        }).catch(err => {
+            res.status(500).send(err);
+        });
+    }
+}
+
 async function getAllOrder(req, res) {
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
@@ -148,7 +171,7 @@ async function getAllOrder(req, res) {
         let rgx = (pattern) => new RegExp(`.*${pattern}.*`);
         let searchRgx = await rgx(search);
         let dateFilter = {};
-        if(search) {
+        if (search) {
             dateFilter.receiver_name = { $regex: searchRgx, $options: 'i' };
         }
         if (dateFrom && dateTo) {
@@ -243,5 +266,6 @@ module.exports = {
     updateOrderStatus,
     getAllOrder,
     getOneOrder,
-    getOrderByUser
+    getOrderByUser,
+    deleteOrder
 };
