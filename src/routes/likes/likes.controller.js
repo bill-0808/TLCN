@@ -1,4 +1,5 @@
 const likes = require('../../models/likes.model')
+const products = require('../../models/products.model')
 const accounts = require('../../models/accounts.model')
 const { ObjectId } = require('mongodb');
 
@@ -23,7 +24,7 @@ async function addToLikeList(req, res) {
                     res.status(201).send(data);
                 }).catch(err => { res.status(500).send({ message: err.message || "ERROR!!!" }) })
             } else {
-                res.status(500).send({message: "Product already in list"});
+                res.status(500).send({ message: "Product already in list" });
             }
         }
     }
@@ -35,10 +36,15 @@ async function getLikeList(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
-        likes.find({ account_id: ObjectId(loginUser._id) }, function (err, likes) {
+        likes.find({ account_id: ObjectId(loginUser._id) }, async function (err, likes) {
             if (!err) {
                 let count = likes.length;
-                res.status(200).send({ count: count, likes: likes });
+                let likeList = [];
+                for (let i = 0; i < count; i++) {
+                    let product = await products.findOne({ _id: ObjectId(likes[i].product_id) });
+                    await likeList.push(product);
+                }
+                res.status(200).send({ count: count, likes: likeList });
             } else {
                 res.status(500).send(err);
             }
