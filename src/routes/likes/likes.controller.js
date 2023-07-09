@@ -58,19 +58,14 @@ async function removeFromLikeList(req, res) {
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
-        if (!req.body) {
-            res.status(500).send({ message: "Missing body!" });
-            return;
-        } else {
-            let id = req.body.product_id;
-            likes.findOneAndDelete({ product_id: ObjectId(id), account_id: ObjectId(loginUser._id) }, function (err, likes) {
-                if (!err) {
-                    res.status(200).send({ message: "delete complete!!" });
-                } else {
-                    res.status(500).send(err);
-                }
-            })
-        }
+        let id = req.params.product_id;
+        likes.findOneAndDelete({ product_id: ObjectId(id), account_id: ObjectId(loginUser._id) }, function (err, likes) {
+            if (!err) {
+                res.status(200).send({ message: "delete complete!!" });
+            } else {
+                res.status(500).send(err);
+            }
+        })
     }
 }
 
