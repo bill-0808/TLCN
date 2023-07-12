@@ -5,22 +5,26 @@ const usersModel = require('../../models/users.model');
 const { ObjectId } = require('mongodb');
 
 async function createChat(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Request missing body
         if (!req.body) {
             res.status(500).send({ message: "Missing body!" });
             return;
         }
         else {
             let isSeller;
+            //detect who send message
             if (loginUser.is_seller) {
                 isSeller = true;
             } else {
                 isSeller = false;
             }
+            //upload image to cloudinary
             let thumbnail = [];
             if (req.files.length != 0) {
                 for (let i = 0; i < req.files.length; i++) {
@@ -31,13 +35,7 @@ async function createChat(req, res) {
                     })
                 }
             }
-            // if (req.file) {
-            //     await cloudinary.uploader.upload(req.file.path, options).then(result => {
-            //         thumbnail = result.secure_url ? result.secure_url : null;
-            //     }).catch(err => {
-            //         console.log(err);
-            //     })
-            // }
+            //create chat
             if (isSeller) {
                 let user = await usersModel.findOne({ _id: req.body.user_id })
                 let account = await accounts.findOne({ user_id: user._id });
@@ -65,13 +63,6 @@ async function createChat(req, res) {
                         })
                     }
                 }
-                // if (req.file) {
-                //     await cloudinary.uploader.upload(req.file.path, options).then(result => {
-                //         thumbnail = result.secure_url ? result.secure_url : null;
-                //     }).catch(err => {
-                //         console.log(err);
-                //     })
-                // }
                 const achat = new chatsModel({
                     user_id: ObjectId(user._id),
                     account_id: ObjectId(loginUser._id),
@@ -90,11 +81,13 @@ async function createChat(req, res) {
 }
 
 async function getAllChat(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id });
+        //Get chat and update is read flag
         if (loginUser.is_seller) {
             chatsModel.updateMany({ user_id: ObjectId(req.query.user_id), $sort: { created_at: -1 } }, { is_read: true }, function (err, chats) {
                 if (!err) {
@@ -128,11 +121,13 @@ async function getAllChat(req, res) {
 }
 
 async function getListUserChat(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id });
+        //get list user who chat with shop
         if (loginUser.is_seller) {
             chatsModel.find({}, async function (err, chats) {
                 if (!err) {
@@ -180,15 +175,16 @@ async function getListUserChat(req, res) {
 }
 
 async function IsAdminChat(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //check if admin read chat
         let loginUser = await accounts.findOne({ _id: req.user._id });
         chatsModel.find({ account_id: ObjectId(loginUser._id), is_user_read: false, $sort: { created_at: -1 } }, function (err, chats) {
             if (!err) {
                 let is_read;
-                console.log(chats, chats.length);
                 if (chats.length > 0) {
                     is_read = false;
                 } else {

@@ -4,16 +4,19 @@ const accounts = require('../../models/accounts.model')
 const { ObjectId } = require('mongodb');
 
 async function addToLikeList(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Request missing body
         if (!req.body) {
             res.status(500).send({ message: "Missing body!" });
             return;
         }
         else {
+            //add product to like list
             let isUserLike = await likes.findOne({ product_id: ObjectId(req.body.product_id), account_id: ObjectId(loginUser._id) });
             if (!isUserLike) {
                 const like = new likes({
@@ -31,10 +34,12 @@ async function addToLikeList(req, res) {
 }
 
 async function getLikeList(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //Get product in like list
         let loginUser = await accounts.findOne({ _id: req.user._id })
         likes.find({ account_id: ObjectId(loginUser._id) }, async function (err, likes) {
             if (!err) {
@@ -53,10 +58,12 @@ async function getLikeList(req, res) {
 }
 
 async function removeFromLikeList(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //remove product in like list
         let loginUser = await accounts.findOne({ _id: req.user._id })
         let id = req.params.product_id;
         likes.findOneAndDelete({ product_id: ObjectId(id), account_id: ObjectId(loginUser._id) }, function (err, likes) {

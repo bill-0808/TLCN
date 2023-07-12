@@ -8,17 +8,20 @@ const orderDetails = require('../../models/orderDetails.model');
 const users = require('../../models/users.model');
 
 async function createRatings(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
         let loginUserInfo = await users.findOne({ _id: loginUser.user_id })
+        //Request missing body
         if (!req.body) {
             res.status(500).send({ message: "Missing body!" });
             return;
         }
         else {
+            //Create rating
             const session = await mongoose.startSession();
             session.startTransaction();
             try {
@@ -77,17 +80,20 @@ async function createRatings(req, res) {
 }
 
 async function updateRatings(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
         let loginUserInfo = await users.findOne({ _id: loginUser.user_id })
+        //Check if user have permission
         if (!req.body) {
             res.status(500).send({ message: "Missing body!" });
             return;
         }
         else {
+            //update rating
             let order = await orders.findOne({ user_id: ObjectId(loginUser._id), status: 3 });
             let orderDetail = await orderDetails.findOne({ _id: ObjectId(req.body.order_detail_id), product_id: ObjectId(req.body.product_id) })
             if (!order || !orderDetail) {
@@ -143,6 +149,7 @@ async function updateRatings(req, res) {
 }
 
 async function getOneRate(req, res) {
+    //Get rating by id
     let order_detail_id = req.params.order_detail_id;
     let product_id = req.params.product_id;
     ratings.findOne({

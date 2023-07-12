@@ -4,13 +4,16 @@ const mongoose = require('mongoose');
 const { cloudinary, options } = require('../../helpers/cloudinary_helper');
 
 async function firstLogin(req, res) {
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
+        //Request missing header Authorization
     } else if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //create user info 1st time login
         let loginUser = await accounts.findOne({ _id: req.user._id })
         if (loginUser.user_id !== null) {
             res.status(500).send({ message: "User infomation alr registed" });
@@ -81,10 +84,12 @@ async function firstLogin(req, res) {
 }
 
 async function getUser(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //get user info
         let loginUser = await accounts.findOne({ _id: req.user, is_active: true });
         let id = await loginUser.user_id;
         users.findById(id, function (err, users) {
@@ -98,14 +103,17 @@ async function getUser(req, res) {
 }
 
 async function getAllAccount(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id, is_active: true })
+        //Check if user have permission
         if (loginUser.is_admin !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
+            //Get all login account
             accounts.find({}, function (err, accounts) {
                 if (!err) {
                     res.status(200).send({ account: accounts });
@@ -118,18 +126,22 @@ async function getAllAccount(req, res) {
 }
 
 async function deleteAccount(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Check if user have permission
         if (loginUser.is_admin !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
+            //Request missing body
             if (!req.body) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
+                //soft delete user
                 let id = req.params.id;
                 accounts.findByIdAndUpdate(id, { is_active: false }, function (err, products) {
                     if (!err && products) {
@@ -144,14 +156,17 @@ async function deleteAccount(req, res) {
 }
 
 async function updateUser(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //Request missing body
         if (!req.body) {
             res.status(500).send({ message: "Missing body!" });
             return;
         } else {
+            //update user info
             let loginUser = await accounts.findOne({ _id: req.user, is_active: true });
             let id = await loginUser.user_id;
             if (req.file) {
@@ -196,6 +211,7 @@ async function updateUser(req, res) {
 }
 
 async function searchAccount(req, res) {
+    //get account by search condition
     let search = req.query.search;
     let rgx = (pattern) => new RegExp(`.*${pattern}.*`);
     let searchRgx = await rgx(search);

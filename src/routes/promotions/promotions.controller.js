@@ -2,19 +2,23 @@ const promotions = require('../../models/promotions.model')
 const accounts = require('../../models/accounts.model')
 
 async function createPromotions(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Check if user have permission
         if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
+            //Request missing body
             if (!req.body) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             }
             else {
+                //create promotion
                 const promotion = new promotions({
                     code: req.body.code,
                     min_order: req.body.min_order,
@@ -32,6 +36,7 @@ async function createPromotions(req, res) {
 }
 
 function getAllPromotions(req, res) {
+    //get all promotion
     promotions.find({}, function (err, promotions) {
         if (!err) {
             let count = promotions.length;
@@ -43,6 +48,7 @@ function getAllPromotions(req, res) {
 }
 
 function getOnePromotion(req, res) {
+    //get promtion by id
     let id = req.params.id;
     promotions.findById(id, function (err, promotions) {
         if (!err) {
@@ -54,18 +60,22 @@ function getOnePromotion(req, res) {
 }
 
 async function updatePromotions(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Check if user have permission
         if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
+            //Request missing header Authorization
             if (!req.body) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
+                //update promotion
                 let id = req.params.id;
                 promotions.findByIdAndUpdate(id, {
                     code: req.body.code,
@@ -90,18 +100,22 @@ async function updatePromotions(req, res) {
 }
 
 async function deletePromotions(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Check if user have permission
         if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
+            //Request missing body
             if (!req.body) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
+                //delete promtion
                 let id = req.params.id;
                 promotions.findByIdAndDelete(id, function (err, promotions) {
                     if (!err) {

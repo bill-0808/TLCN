@@ -3,6 +3,7 @@ const accounts = require('../../models/accounts.model')
 const { cloudinary, options } = require('../../helpers/cloudinary_helper')
 
 async function createNews(req, res) {
+    
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;

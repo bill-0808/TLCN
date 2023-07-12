@@ -10,13 +10,16 @@ const promotions = require('../../models/promotions.model');
 const usersModel = require('../../models/users.model');
 
 async function createOrder(req, res) {
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     } else if (!req.user) {
+        //Request missing header Authorization
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //Remove item in cart if exist and create order
         let loginUser = await accounts.findOne({ _id: req.user._id })
         let id = new mongoose.Types.ObjectId();
         const session = await mongoose.startSession();
@@ -106,14 +109,17 @@ async function createOrder(req, res) {
 }
 
 async function updateOrderStatus(req, res) {
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     } else if (!req.user) {
+        //Request missing header Authorization
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         // let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Update order status
         let id = await req.params.id;
         const session = await mongoose.startSession();
         session.startTransaction();
@@ -135,14 +141,17 @@ async function updateOrderStatus(req, res) {
 }
 
 async function deleteOrder(req, res) {
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     } else if (!req.user) {
+        //Request missing header Authorization
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         // let loginUser = await accounts.findOne({ _id: req.user._id });
+        //Update order status to deleted
         let id = await req.params.id;
 
         const order = await orders.findByIdAndUpdate(id, { status: 500 }).then(data => {
@@ -158,13 +167,16 @@ async function deleteOrder(req, res) {
 }
 
 async function getAllOrder(req, res) {
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     } else if (!req.user) {
+        //Request missing header Authorization
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //Get all order by search condition
         let dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom) : null;
         let dateTo = req.query.dateTo ? new Date(req.query.dateTo) : null;
         let search = req.query.search;
@@ -192,13 +204,16 @@ async function getAllOrder(req, res) {
 }
 
 async function getOrderByUser(req, res) {
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     } else if (!req.user) {
+        //Request missing header Authorization
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //Get all order of user
         let loginUser = await accounts.findOne({ _id: req.user._id })
         let orderList = [];
         let dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom) : null;
@@ -235,13 +250,16 @@ async function getOrderByUser(req, res) {
 }
 
 async function getOneOrder(req, res) {
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     } else if (!req.user) {
+        //Request missing header Authorization
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
+        //Get order by id
         let id = await req.params.id;
         orders.findById(id, async function (err, orders) {
             if (!err) {

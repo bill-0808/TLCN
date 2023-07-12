@@ -6,20 +6,23 @@ const { ObjectId } = require('mongodb');
 const users = require('../../models/users.model');
 
 async function createProduct(req, res) {
-    console.log(req.files, req.body, JSON.parse(req.body.size));
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Check if user have permission
         if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
+            //Request missing body
             if (!req.body) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             }
             else {
+                //Create product
                 if (req.files.length != 0) {
                     let productImage = [];
                     for (let i = 0; i < req.files.length; i++) {
@@ -57,6 +60,7 @@ async function createProduct(req, res) {
 }
 
 function getAllProducts(req, res) {
+    //get all product
     products.find({ is_active: true }, function (err, products) {
         if (!err) {
             let count = products.length;
@@ -68,6 +72,7 @@ function getAllProducts(req, res) {
 }
 
 async function getPaggingProduct(req, res) {
+    //Get product by conditon and pagging
     var page = Number.parseInt(req.query.page)
     var pageSize = Number.parseInt(req.query.pageSize);
     let types = req.query.type ? JSON.parse(req.query.type) : null;
@@ -81,7 +86,7 @@ async function getPaggingProduct(req, res) {
     const filters = {
         is_active: true
     };
-    if(search) {
+    if (search) {
         filters.name = { $regex: searchRgx, $options: 'i' };
     }
     if (types) {
@@ -97,7 +102,7 @@ async function getPaggingProduct(req, res) {
         filters.color = { $in: colors };
     }
     if (sizes) {
-        for(let i = 0; i < sizes.length; i++) {
+        for (let i = 0; i < sizes.length; i++) {
             filters[`size.${sizes[i]}`] = { $ne: 0 }
         }
     }
@@ -109,6 +114,7 @@ async function getPaggingProduct(req, res) {
 }
 
 async function getOneProducts(req, res) {
+    //Get product by id
     let id = req.params.id;
     products.findById(id, async function (err, products) {
         if (!err) {
@@ -136,18 +142,22 @@ async function getOneProducts(req, res) {
 }
 
 async function updateProducts(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Check if user have permission
         if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
+            //Request missing body
             if (!req.body) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
+                //Update product
                 let id = req.params.id;
                 if (req.files.length != 0) {
                     let productImage = [];
@@ -212,6 +222,7 @@ async function updateProducts(req, res) {
 }
 
 async function searchProduct(req, res) {
+    //Get product by search condition
     let search = req.query.search;
     let rgx = (pattern) => new RegExp(`.*${pattern}.*`);
     let searchRgx = await rgx(search);
@@ -227,18 +238,22 @@ async function searchProduct(req, res) {
 }
 
 async function deleteProducts(req, res) {
+    //Request missing header Authorization
     if (!req.user) {
         res.status(401).send({ message: "Unauthenticate!!" });
         return;
     } else {
         let loginUser = await accounts.findOne({ _id: req.user._id })
+        //Check if user have permission
         if (loginUser.is_seller !== true) {
             res.status(401).send({ message: "Unauthorized!!" })
         } else {
+            //Request missing body
             if (!req.body) {
                 res.status(500).send({ message: "Missing body!" });
                 return;
             } else {
+                //Soft delete product
                 let id = req.params.id;
                 products.findByIdAndUpdate(id, { is_active: false }, function (err, products) {
                     if (!err && products) {

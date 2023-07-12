@@ -9,12 +9,15 @@ const { ObjectId } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 
 async function register(req, res) {
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     }
     else {
+        //Check if email registed
         const registAccount = await accounts.findOne({ email: req.body.email })
+        //Check if password match with password repeat
         if (req.body.password != req.body.passwordRepeat) {
             res.status(500).send({ message: "confirm password might not right" });
         } else if (!registAccount) {
@@ -29,6 +32,7 @@ async function register(req, res) {
                 is_active: false,
                 secret: secret
             })
+            //Send mail
             account.save(account).then(async data => {
                 let transporter = nodemailer.createTransport(smtpTransport({
                     service: 'gmail',
@@ -89,6 +93,7 @@ async function register(req, res) {
 }
 
 async function verify(req, res) {
+    //Verify with mail secret code
     let id = await req.params.id;
     let secret = await req.body.secret;
     accounts.findOneAndUpdate({ _id: ObjectId(id), secret: secret }, { is_active: true })
@@ -104,6 +109,7 @@ async function verify(req, res) {
 }
 
 async function resetPassword(req, res) {
+    //Send mail to email reset password
     let email = req.body.email;
     let resetPasswordAccount = await accounts.findOne({ email: email });
     if (resetPasswordAccount) {
@@ -139,11 +145,13 @@ async function resetPassword(req, res) {
 }
 
 async function verifyResetPassword(req, res) {
+    //Request missing header Authorization
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     }
     else {
+        //Verify with secret code sent in mail
         const doesExist = await accounts.findOne({ email: req.body.email, is_active: true })
         if (req.body.password != req.body.passwordRepeat) {
             res.status(500).send({ message: "confirm password might not right" });
@@ -160,10 +168,12 @@ async function verifyResetPassword(req, res) {
 
 async function login(req, res) {
     let loginUser = await accounts.findOne({ email: req.body.email, is_active: true, is_admin: false, is_seller: false })
+    //Request missing body
     if (!req.body) {
         res.status(500).send({ message: "Missing body!" });
         return;
     } else {
+        //Check email and password hash match with db
         if (!loginUser) {
             res.status(404).send({ message: "Email might not correct!" });
         } else {
@@ -201,10 +211,12 @@ async function login(req, res) {
 async function loginAdmin(req, res) {
     let loginUser = await accounts.findOne({ email: req.body.email, is_active: true })
     if (loginUser && (loginUser.is_admin == true || loginUser.is_seller == true)) {
+        //Request missing body
         if (!req.body) {
             res.status(500).send({ message: "Missing body!" });
             return;
         } else {
+            //Check email and password hash match with db
             let checkPass = await bcrypt.compare(req.body.password, loginUser.password);
             if (checkPass) {
                 let token = await createToken(loginUser._id);
@@ -240,6 +252,7 @@ async function loginAdmin(req, res) {
 }
 
 async function loginGoogle(req, res) {
+    //Check if first time login -> save google id, else -> get account with google id match
     let isLoginBefore = await accounts.findOne({ google_id: req.body.google_id });
     console.log(req.body.google_id);
     if (!isLoginBefore) {
